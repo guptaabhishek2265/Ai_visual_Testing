@@ -1,0 +1,40 @@
+add_all_the_items_to_the_cart.png -> OK but visually different in detail (Score: 0.970)
+   Difference Summary: Detected 4 highlighted difference region(s). Region 1: x=446, y=566, w=144, h=90, area=12960 Region 2: x=285, y=562, w=143, h=90, area=12870 Region 3: x=287, y=286, w=128, h=74, area=9472 Region 4: x=447, y=292, w=130, h=71, area=9230
+   AI Insight: The visible differences highlighted in the diff image are:
+- Product price and details in the product cards and the shopping cart.
+
+The change looks like a **text/content change**, specifically a **price update** for the "Juicess" product, with its price changing from ₹500.00 to ₹10,000.00.
+
+The change appears to be **major**, as it significantly affects the product's price and the shopping cart's subtotal, tax, and total.
+   Diff Image: reports\diff\diff_add_all_the_items_to_the_cart.png
+
+browse_the_food_menu.png -> OK but visually different in detail (Score: 0.944)
+   Difference Summary: Detected 30 highlighted difference region(s). Region 1: x=261, y=566, w=339, h=114, area=38646 Region 2: x=286, y=280, w=129, h=83, area=10707 Region 3: x=447, y=281, w=130, h=82, area=10660 Region 4: x=591, y=195, w=166, h=48, area=7968 Region 5: x=1140, y=603, w=82, h=76, area=6232
+   AI Insight: Here is the analysis of the visual differences:
+
+The visual differences appear to be related to layout and alignment issues, with several red rectangles highlighting areas of discrepancy. 
+The changes seem to be a mix of layout shifts and possible alignment issues, particularly noticeable in the lower sections of the image and the product cards. 
+The changes look minor, as they do not seem to affect the overall functionality or major visual elements of the page. 
+The similarity score of 0.944 also suggests that the changes are relatively minor.
+   Diff Image: reports\diff\diff_browse_the_food_menu.png
+
+check_the_dashboard.png -> OK but visually different in detail (Score: 0.949)
+   Difference Summary: Detected 29 highlighted difference region(s). Region 1: x=261, y=566, w=339, h=114, area=38646 Region 2: x=447, y=292, w=130, h=71, area=9230 Region 3: x=286, y=292, w=129, h=71, area=9159 Region 4: x=1140, y=603, w=82, h=76, area=6232 Region 5: x=1109, y=603, w=44, h=76, area=3344
+   AI Insight: The diff image highlights several areas of change. 
+The changes appear to be related to layout shifts or potential alignment issues, particularly around the product cards and buttons, as well as changes at the bottom of the page. 
+The changes appear to be minor.
+   Diff Image: reports\diff\diff_check_the_dashboard.png
+
+go_to_the_cart_page.png -> OK but visually different in detail (Score: 0.954)
+   Difference Summary: Detected 8 highlighted difference region(s). Region 1: x=446, y=566, w=144, h=90, area=12960 Region 2: x=285, y=275, w=143, h=88, area=12584 Region 3: x=285, y=566, w=143, h=86, area=12298 Region 4: x=447, y=292, w=130, h=71, area=9230 Region 5: x=591, y=195, w=166, h=48, area=7968
+   AI Insight: The visually detected changes are:
+- Price and quantity change on the right sidebar.
+
+The type of change appears to be a text/content change.
+
+The change looks minor.
+   Diff Image: reports\diff\diff_go_to_the_cart_page.png
+
+proceed_to_checkout.png -> OK (Score: 0.994)
+   Difference Summary: Detected 2 highlighted difference region(s). Region 1: x=285, y=566, w=58, h=90, area=5220 Region 2: x=286, y=293, w=57, h=70, area=3990
+   Diff Image: reports\diff\diff_proceed_to_checkout.png

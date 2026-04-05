@@ -1,0 +1,316 @@
+{
+  "summary": {
+    "pass": 0,
+    "fail": 5,
+    "missing_baseline": 0,
+    "size_mismatch": 0,
+    "ssim_threshold": 0.6,
+    "changed_pixel_ratio_threshold": 0.003,
+    "largest_region_ratio_threshold": 0.0008
+  },
+  "results": [
+    {
+      "file": "add_all_the_items_to_the_cart.png",
+      "status": "FAIL",
+      "ssim_score": 0.97,
+      "changed_pixel_ratio": 0.03662109375,
+      "largest_region_ratio": 0.009722764756944445,
+      "changed_regions": [
+        {
+          "x": 290,
+          "y": 573,
+          "width": 131,
+          "height": 76,
+          "area": 8960.5,
+          "area_ratio": 0.009722764756944445
+        },
+        {
+          "x": 455,
+          "y": 579,
+          "width": 126,
+          "height": 71,
+          "area": 8410.5,
+          "area_ratio": 0.0091259765625
+        },
+        {
+          "x": 289,
+          "y": 289,
+          "width": 123,
+          "height": 67,
+          "area": 7891.0,
+          "area_ratio": 0.00856228298611111
+        },
+        {
+          "x": 450,
+          "y": 295,
+          "width": 124,
+          "height": 65,
+          "area": 7780.0,
+          "area_ratio": 0.008441840277777777
+        }
+      ],
+      "strategy_used": "same_size",
+      "diff_overlay": "reports\\diffs\\add_all_the_items_to_the_cart.png"
+    },
+    {
+      "file": "browse_the_food_menu.png",
+      "status": "FAIL",
+      "ssim_score": 0.9443,
+      "changed_pixel_ratio": 0.046155598958333335,
+      "largest_region_ratio": 0.008701714409722222,
+      "changed_regions": [
+        {
+          "x": 450,
+          "y": 284,
+          "width": 124,
+          "height": 76,
+          "area": 8019.5,
+          "area_ratio": 0.008701714409722222
+        },
+        {
+          "x": 289,
+          "y": 284,
+          "width": 123,
+          "height": 76,
+          "area": 7981.0,
+          "area_ratio": 0.008659939236111112
+        },
+        {
+          "x": 294,
+          "y": 579,
+          "width": 137,
+          "height": 75,
+          "area": 7829.0,
+          "area_ratio": 0.008495008680555555
+        },
+        {
+          "x": 455,
+          "y": 579,
+          "width": 128,
+          "height": 67,
+          "area": 7728.5,
+          "area_ratio": 0.008385959201388888
+        },
+        {
+          "x": 594,
+          "y": 198,
+          "width": 160,
+          "height": 42,
+          "area": 6414.0,
+          "area_ratio": 0.006959635416666667
+        },
+        {
+          "x": 264,
+          "y": 645,
+          "width": 227,
+          "height": 32,
+          "area": 2813.0,
+          "area_ratio": 0.0030523003472222223
+        },
+        {
+          "x": 424,
+          "y": 630,
+          "width": 25,
+          "height": 14,
+          "area": 168.5,
+          "area_ratio": 0.0001828342013888889
+        },
+        {
+          "x": 355,
+          "y": 671,
+          "width": 41,
+          "height": 6,
+          "area": 111.0,
+          "area_ratio": 0.00012044270833333334
+        }
+      ],
+      "strategy_used": "same_size",
+      "diff_overlay": "reports\\diffs\\browse_the_food_menu.png"
+    },
+    {
+      "file": "check_the_dashboard.png",
+      "status": "FAIL",
+      "ssim_score": 0.9494,
+      "changed_pixel_ratio": 0.038550347222222225,
+      "largest_region_ratio": 0.008495008680555555,
+      "changed_regions": [
+        {
+          "x": 294,
+          "y": 579,
+          "width": 137,
+          "height": 75,
+          "area": 7829.0,
+          "area_ratio": 0.008495008680555555
+        },
+        {
+          "x": 450,
+          "y": 295,
+          "width": 124,
+          "height": 65,
+          "area": 7780.0,
+          "area_ratio": 0.008441840277777777
+        },
+        {
+          "x": 455,
+          "y": 579,
+          "width": 128,
+          "height": 67,
+          "area": 7728.5,
+          "area_ratio": 0.008385959201388888
+        },
+        {
+          "x": 289,
+          "y": 295,
+          "width": 123,
+          "height": 65,
+          "area": 7716.0,
+          "area_ratio": 0.008372395833333334
+        },
+        {
+          "x": 264,
+          "y": 645,
+          "width": 227,
+          "height": 32,
+          "area": 2813.0,
+          "area_ratio": 0.0030523003472222223
+        },
+        {
+          "x": 424,
+          "y": 630,
+          "width": 25,
+          "height": 14,
+          "area": 168.5,
+          "area_ratio": 0.0001828342013888889
+        },
+        {
+          "x": 355,
+          "y": 671,
+          "width": 41,
+          "height": 6,
+          "area": 111.0,
+          "area_ratio": 0.00012044270833333334
+        }
+      ],
+      "strategy_used": "same_size",
+      "diff_overlay": "reports\\diffs\\check_the_dashboard.png"
+    },
+    {
+      "file": "go_to_the_cart_page.png",
+      "status": "FAIL",
+      "ssim_score": 0.954,
+      "changed_pixel_ratio": 0.04603081597222222,
+      "largest_region_ratio": 0.009647352430555556,
+      "changed_regions": [
+        {
+          "x": 291,
+          "y": 573,
+          "width": 129,
+          "height": 76,
+          "area": 8891.0,
+          "area_ratio": 0.009647352430555556
+        },
+        {
+          "x": 455,
+          "y": 579,
+          "width": 126,
+          "height": 71,
+          "area": 8410.5,
+          "area_ratio": 0.0091259765625
+        },
+        {
+          "x": 289,
+          "y": 279,
+          "width": 123,
+          "height": 81,
+          "area": 8002.5,
+          "area_ratio": 0.008683268229166667
+        },
+        {
+          "x": 450,
+          "y": 295,
+          "width": 124,
+          "height": 65,
+          "area": 7780.0,
+          "area_ratio": 0.008441840277777777
+        },
+        {
+          "x": 594,
+          "y": 198,
+          "width": 160,
+          "height": 42,
+          "area": 6414.0,
+          "area_ratio": 0.006959635416666667
+        },
+        {
+          "x": 305,
+          "y": 447,
+          "width": 69,
+          "height": 15,
+          "area": 425.5,
+          "area_ratio": 0.00046169704861111113
+        },
+        {
+          "x": 317,
+          "y": 528,
+          "width": 60,
+          "height": 18,
+          "area": 337.5,
+          "area_ratio": 0.0003662109375
+        },
+        {
+          "x": 352,
+          "y": 478,
+          "width": 30,
+          "height": 16,
+          "area": 196.5,
+          "area_ratio": 0.00021321614583333332
+        },
+        {
+          "x": 305,
+          "y": 477,
+          "width": 28,
+          "height": 16,
+          "area": 142.0,
+          "area_ratio": 0.0001540798611111111
+        },
+        {
+          "x": 387,
+          "y": 480,
+          "width": 18,
+          "height": 13,
+          "area": 101.5,
+          "area_ratio": 0.00011013454861111112
+        }
+      ],
+      "strategy_used": "same_size",
+      "diff_overlay": "reports\\diffs\\go_to_the_cart_page.png"
+    },
+    {
+      "file": "proceed_to_checkout.png",
+      "status": "FAIL",
+      "ssim_score": 0.9937,
+      "changed_pixel_ratio": 0.006465928819444445,
+      "largest_region_ratio": 0.0034130859375,
+      "changed_regions": [
+        {
+          "x": 289,
+          "y": 295,
+          "width": 51,
+          "height": 65,
+          "area": 3145.5,
+          "area_ratio": 0.0034130859375
+        },
+        {
+          "x": 297,
+          "y": 580,
+          "width": 43,
+          "height": 64,
+          "area": 2604.5,
+          "area_ratio": 0.0028260633680555554
+        }
+      ],
+      "strategy_used": "same_size",
+      "diff_overlay": "reports\\diffs\\proceed_to_checkout.png"
+    }
+  ]
+}
