@@ -1,0 +1,9 @@
+Login to the app.
+Check the dashboard and take a screenshot.
+Browse the food menu and take a screenshot.
+Add all the items  to the cart and take a screenshot.
+Go to the cart page and take a screenshot.
+Proceed to checkout and take a screenshot.
+
+
+

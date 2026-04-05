@@ -1,0 +1,26 @@
+{
+  "name": "ai-visual-testing",
+  "version": "1.0.0",
+  "description": "AI-powered visual testing with Playwright and SSIM comparison",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "compare": "python utils/compare.py"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  },
+  "keywords": [
+    "visual-testing",
+    "ai",
+    "playwright",
+    "ssim"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "groq-sdk": "^1.1.1"
+  }
+}
