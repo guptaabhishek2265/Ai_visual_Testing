@@ -7,6 +7,7 @@ const CURRENT_DIR = "screenshots/current";
 const SCREENSHOT_ZOOM = Number(process.env.SCREENSHOT_ZOOM || 0.8);
 const SCREENSHOT_SCROLL_STEP_PX = Number(process.env.SCREENSHOT_SCROLL_STEP_PX || 900);
 const SCREENSHOT_SCROLL_WAIT_MS = Number(process.env.SCREENSHOT_SCROLL_WAIT_MS || 75);
+const LOGIN_SUCCESS_TIMEOUT_MS = Number(process.env.LOGIN_SUCCESS_TIMEOUT_MS || 15000);
 const FAST_VISUAL_MODE = process.env.FAST_VISUAL_MODE !== "false";
 const DEFAULT_LOGIN_SELECTORS = {
   email: [
@@ -316,6 +317,7 @@ async function clickAllAction(page, selector) {
 }
 
 async function loginSmart(page) {
+  const loginUrl = page.url();
   await page.waitForSelector("input", { timeout: 15000 });
   const html = await page.content();
   let selectors = {};
@@ -355,7 +357,40 @@ async function loginSmart(page) {
   await page.locator(passwordSelector).first().fill(process.env.PASSWORD);
   await page.locator(submitSelector).first().click();
 
+  try {
+    await page.waitForFunction(
+      ({ initialUrl }) => {
+        const passwordInput = document.querySelector('input[type="password"], input[name="password"], #password');
+        const currentUrl = window.location.href;
+        return currentUrl !== initialUrl || !passwordInput;
+      },
+      { initialUrl: loginUrl },
+      { timeout: LOGIN_SUCCESS_TIMEOUT_MS }
+    );
+  } catch (error) {
+    throw new Error(
+      `Login did not complete within ${LOGIN_SUCCESS_TIMEOUT_MS}ms. ` +
+      `Current URL: ${page.url()}. Check APP_URL, EMAIL, PASSWORD, and app availability.`
+    );
+  }
+
+  await page.waitForLoadState("domcontentloaded").catch(() => {});
   await page.waitForTimeout(1200);
+
+  const stillOnLogin = /\/login\b/i.test(page.url());
+  const passwordStillVisible = await page
+    .locator('input[type="password"], input[name="password"], #password')
+    .first()
+    .isVisible()
+    .catch(() => false);
+
+  if (stillOnLogin && passwordStillVisible) {
+    throw new Error(
+      `Login appears to have failed. Current URL: ${page.url()}. ` +
+      "The password field is still visible after submit."
+    );
+  }
+
   console.log("Login complete");
 }
 
