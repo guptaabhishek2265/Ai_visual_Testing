@@ -1,5 +1,11 @@
 import base64
+import hashlib
+import json
 import os
+import shutil
+import sys
+import time
+import uuid
 
 import cv2
 import requests
@@ -12,6 +18,7 @@ BASELINE_DIR = "screenshots/baseline"
 CURRENT_DIR = "screenshots/current"
 REPORTS_DIR = "reports"
 DIFF_DIR = os.path.join(REPORTS_DIR, "diff")
+ALLURE_RESULTS_DIR = "allure-results"
 
 GROQ_API_KEY = ""
 SSIM_THRESHOLD = 0.95
@@ -19,6 +26,218 @@ DETAIL_ANALYSIS_THRESHOLD = 0.97
 GROQ_MODEL = "llama3-8b-8192"
 GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 MIN_DIFF_BOX_AREA = 50
+FAIL_ON_VISUAL_DIFF = False
+
+
+def humanize_key(value):
+    return " ".join(
+        word.capitalize()
+        for word in str(value or "")
+        .replace(".png", "")
+        .replace("_", " ")
+        .split()
+    )
+
+
+def parse_visual_file_context(file_name):
+    stem = os.path.splitext(file_name)[0]
+    prefix, _, step_key = stem.partition("__")
+    prefix_parts = prefix.split("_")
+
+    project = prefix_parts[0] if prefix_parts else "visual"
+    suite = prefix_parts[1] if len(prefix_parts) > 1 else "visual"
+    scenario_key = "_".join(prefix_parts[2:]) if len(prefix_parts) > 2 else "comparison"
+
+    return {
+        "project": project,
+        "suite": suite,
+        "scenario": humanize_key(scenario_key),
+        "step": humanize_key(step_key or scenario_key),
+        "step_key": step_key,
+    }
+
+
+def is_add_to_cart_displacement(result):
+    file_name = result.get("file", "").lower()
+    return "add_all_the_items_to_the_cart" in file_name or "add_to_cart" in file_name
+
+
+def build_visual_issue_title(result, context):
+    if is_add_to_cart_displacement(result):
+        return "Visual regression - Add to Cart button displacement"
+
+    return f"Visual regression - {context['step']}"
+
+
+def build_visual_issue_summary(result, context):
+    title = build_visual_issue_title(result, context)
+    status = result.get("status", "unknown")
+    score = result.get("score", "n/a")
+    summary = result.get("difference_summary", "No difference summary available.")
+    insight = result.get("ai_insight", "AI insight was not generated for this comparison.")
+
+    lines = [
+        title,
+        "",
+        f"Suite: {context['suite']} suite",
+        f"Scenario: {context['scenario']}",
+        f"Step: {context['step']}",
+        f"Comparison status: {status}",
+        f"SSIM score: {score}",
+        "",
+        "Detected issue:",
+    ]
+
+    if is_add_to_cart_displacement(result):
+        lines.append("Add to Cart button displacement detected in the regression checkout flow.")
+    else:
+        lines.append("Visual difference detected between baseline and current screenshot.")
+
+    lines.extend(
+        [
+            "",
+            f"Difference summary: {summary}",
+            "",
+            f"AI insight: {insight}",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def copy_allure_attachment(source_path, attachment_uuid, extension):
+    if not source_path or not os.path.exists(source_path):
+        return None
+
+    os.makedirs(ALLURE_RESULTS_DIR, exist_ok=True)
+    source_name = f"{attachment_uuid}-attachment{extension}"
+    destination_path = os.path.join(ALLURE_RESULTS_DIR, source_name)
+    shutil.copyfile(source_path, destination_path)
+    return source_name
+
+
+def write_allure_text_attachment(content, attachment_uuid):
+    os.makedirs(ALLURE_RESULTS_DIR, exist_ok=True)
+    source_name = f"{attachment_uuid}-attachment.txt"
+    destination_path = os.path.join(ALLURE_RESULTS_DIR, source_name)
+
+    with open(destination_path, "w", encoding="utf-8") as attachment_file:
+        attachment_file.write(content)
+
+    return source_name
+
+
+def allure_status_for_visual_result(result):
+    if result.get("status") in {"failed", "warning", "missing_baseline", "read_error"}:
+        return "failed"
+    return "passed"
+
+
+def write_allure_visual_result(result):
+    context = parse_visual_file_context(result.get("file", "visual_comparison.png"))
+    result_uuid = str(uuid.uuid4())
+    start_time = int(time.time() * 1000)
+    allure_status = allure_status_for_visual_result(result)
+    title = build_visual_issue_title(result, context)
+    summary = build_visual_issue_summary(result, context)
+    attachments = []
+
+    summary_source = write_allure_text_attachment(summary, str(uuid.uuid4()))
+    attachments.append(
+        {
+            "name": "Visual regression summary",
+            "source": summary_source,
+            "type": "text/plain",
+        }
+    )
+
+    for attachment_name, source_path in [
+        ("Baseline screenshot", result.get("baseline_path")),
+        ("Current screenshot", result.get("current_path")),
+        ("Diff image - highlighted changes", result.get("diff_path")),
+    ]:
+        source = copy_allure_attachment(source_path, str(uuid.uuid4()), ".png")
+        if source:
+            attachments.append(
+                {
+                    "name": attachment_name,
+                    "source": source,
+                    "type": "image/png",
+                }
+            )
+
+    stable_id = hashlib.md5(result.get("file", result_uuid).encode("utf-8")).hexdigest()
+    allure_result = {
+        "uuid": result_uuid,
+        "name": title,
+        "historyId": stable_id,
+        "testCaseId": stable_id,
+        "fullName": f"visual-comparison.{context['suite']}.{context['step_key']}",
+        "status": allure_status,
+        "statusDetails": {
+            "message": summary,
+        },
+        "stage": "finished",
+        "steps": [
+            {
+                "name": "Compare baseline and current screenshot",
+                "status": allure_status,
+                "stage": "finished",
+                "attachments": attachments,
+                "parameters": [
+                    {"name": "SSIM score", "value": str(result.get("score", "n/a"))},
+                    {"name": "Comparison status", "value": result.get("status", "unknown")},
+                ],
+                "start": start_time,
+                "stop": start_time,
+            }
+        ],
+        "attachments": attachments,
+        "parameters": [
+            {"name": "Project", "value": context["project"]},
+            {"name": "Suite", "value": f"{context['suite']} suite"},
+            {"name": "Scenario", "value": context["scenario"]},
+            {"name": "Step", "value": context["step"]},
+        ],
+        "labels": [
+            {"name": "language", "value": "python"},
+            {"name": "framework", "value": "ssim"},
+            {"name": "parentSuite", "value": context["project"]},
+            {"name": "subSuite", "value": f"{context['suite']} suite"},
+            {"name": "tag", "value": context["suite"]},
+            {"name": "tag", "value": "visual"},
+            {"name": "tag", "value": "visual-regression"},
+        ],
+        "links": [],
+        "start": start_time,
+        "stop": start_time,
+    }
+
+    if is_add_to_cart_displacement(result):
+        allure_result["labels"].extend(
+            [
+                {"name": "tag", "value": "cart"},
+                {"name": "tag", "value": "add-to-cart"},
+                {"name": "tag", "value": "button-displacement"},
+            ]
+        )
+
+    result_path = os.path.join(ALLURE_RESULTS_DIR, f"{result_uuid}-result.json")
+    with open(result_path, "w", encoding="utf-8") as result_file:
+        json.dump(allure_result, result_file, indent=2)
+
+
+def write_allure_visual_results(results):
+    changed_results = [
+        result
+        for result in results
+        if result.get("status") in {"failed", "warning", "missing_baseline", "read_error"}
+    ]
+
+    for result in changed_results:
+        write_allure_visual_result(result)
+
+    if changed_results:
+        print(f"Allure visual comparison results saved in: {ALLURE_RESULTS_DIR}")
 
 
 def load_env_file(env_path):
@@ -46,6 +265,7 @@ def load_config():
     global GROQ_MODEL
     global GROQ_VISION_MODEL
     global MIN_DIFF_BOX_AREA
+    global FAIL_ON_VISUAL_DIFF
 
     load_env_file(ENV_PATH)
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
@@ -59,6 +279,7 @@ def load_config():
         "meta-llama/llama-4-scout-17b-16e-instruct",
     ).strip()
     MIN_DIFF_BOX_AREA = int(os.getenv("MIN_DIFF_BOX_AREA", "50"))
+    FAIL_ON_VISUAL_DIFF = os.getenv("FAIL_ON_VISUAL_DIFF", "false").strip().lower() == "true"
 
 
 def list_pngs(folder_path):
@@ -223,16 +444,17 @@ def compare_images():
     os.makedirs(DIFF_DIR, exist_ok=True)
 
     report = []
+    json_report = []
     current_files = list_pngs(CURRENT_DIR)
     baseline_files = set(list_pngs(BASELINE_DIR))
 
     if not current_files:
         print("No current screenshots found in screenshots/current.\n")
-        return
+        return True
 
     if not baseline_files:
         create_baseline_from_current(current_files)
-        return
+        return True
 
     print("Comparing screenshots...\n")
     print(f"Pass threshold: {SSIM_THRESHOLD:.2f}")
@@ -241,9 +463,16 @@ def compare_images():
     for file_name in current_files:
         base_path = os.path.join(BASELINE_DIR, file_name)
         curr_path = os.path.join(CURRENT_DIR, file_name)
+        result = {
+            "file": file_name,
+            "baseline_path": base_path,
+            "current_path": curr_path,
+        }
 
         if not os.path.exists(base_path):
             report.append(f"{file_name} -> No baseline found")
+            result["status"] = "missing_baseline"
+            json_report.append(result)
             continue
 
         img1 = cv2.imread(base_path)
@@ -251,6 +480,8 @@ def compare_images():
 
         if img1 is None or img2 is None:
             report.append(f"{file_name} -> Error reading image")
+            result["status"] = "read_error"
+            json_report.append(result)
             continue
 
         if img1.shape != img2.shape:
@@ -281,6 +512,10 @@ def compare_images():
         diff_path = os.path.join(DIFF_DIR, f"diff_{file_name}")
         cv2.imwrite(diff_path, marked_image)
         region_summary = build_region_summary(regions)
+        result["diff_path"] = diff_path
+        result["regions"] = regions
+        result["score"] = round(float(score), 6)
+        result["difference_summary"] = region_summary
 
         if score < SSIM_THRESHOLD:
             explanation = get_llm_analysis(file_name, score, diff_path)
@@ -288,6 +523,8 @@ def compare_images():
             report.append(f"   Difference Summary: {region_summary}")
             report.append(f"   AI Insight: {explanation}")
             report.append(f"   Diff Image: {diff_path}\n")
+            result["status"] = "failed"
+            result["ai_insight"] = explanation
         elif score < DETAIL_ANALYSIS_THRESHOLD:
             explanation = get_llm_analysis(file_name, score, diff_path)
             report.append(
@@ -296,23 +533,57 @@ def compare_images():
             report.append(f"   Difference Summary: {region_summary}")
             report.append(f"   AI Insight: {explanation}")
             report.append(f"   Diff Image: {diff_path}\n")
+            result["status"] = "warning"
+            result["ai_insight"] = explanation
         else:
             report.append(f"{file_name} -> OK (Score: {score:.3f})")
             report.append(f"   Difference Summary: {region_summary}")
             report.append(f"   Diff Image: {diff_path}")
+            result["status"] = "passed"
+
+        json_report.append(result)
 
     report_path = os.path.join(REPORTS_DIR, "report.txt")
     with open(report_path, "w", encoding="utf-8") as report_file:
         for line in report:
             report_file.write(line + "\n")
 
+    json_report_path = os.path.join(REPORTS_DIR, "report.json")
+    with open(json_report_path, "w", encoding="utf-8") as report_file:
+        json.dump(
+            {
+                "summary": {
+                    "total": len(json_report),
+                    "passed": sum(1 for item in json_report if item.get("status") == "passed"),
+                    "warning": sum(1 for item in json_report if item.get("status") == "warning"),
+                    "failed": sum(1 for item in json_report if item.get("status") == "failed"),
+                    "missing_baseline": sum(
+                        1 for item in json_report if item.get("status") == "missing_baseline"
+                    ),
+                },
+                "results": json_report,
+            },
+            report_file,
+            indent=2,
+        )
+
+    write_allure_visual_results(json_report)
+
     print("\nVISUAL TEST REPORT:\n")
     for line in report:
         print(line)
 
     print(f"\nDiff images saved in: {DIFF_DIR}")
+    print(f"JSON report saved in: {json_report_path}")
+
+    has_failure = any(
+        item.get("status") in {"failed", "missing_baseline", "read_error"}
+        for item in json_report
+    )
+    return not (FAIL_ON_VISUAL_DIFF and has_failure)
 
 
 if __name__ == "__main__":
     load_config()
-    compare_images()
+    if not compare_images():
+        sys.exit(1)

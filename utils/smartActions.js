@@ -1,9 +1,13 @@
 const { getLoginSelectors, getNextAction } = require("./llm");
+const fs = require("fs");
 const path = require("path");
 
+const BASELINE_DIR = "screenshots/baseline";
+const CURRENT_DIR = "screenshots/current";
 const SCREENSHOT_ZOOM = Number(process.env.SCREENSHOT_ZOOM || 0.8);
-const SCREENSHOT_SCROLL_STEP_PX = Number(process.env.SCREENSHOT_SCROLL_STEP_PX || 500);
-const SCREENSHOT_SCROLL_WAIT_MS = Number(process.env.SCREENSHOT_SCROLL_WAIT_MS || 250);
+const SCREENSHOT_SCROLL_STEP_PX = Number(process.env.SCREENSHOT_SCROLL_STEP_PX || 900);
+const SCREENSHOT_SCROLL_WAIT_MS = Number(process.env.SCREENSHOT_SCROLL_WAIT_MS || 75);
+const FAST_VISUAL_MODE = process.env.FAST_VISUAL_MODE !== "false";
 const DEFAULT_LOGIN_SELECTORS = {
   email: [
     "#email",
@@ -38,6 +42,41 @@ function buildStepScreenshotName(testerStep) {
     .replace(/^_+|_+$/g, "")
     .replace(/_+/g, "_")
     .replace(/_and$/g, "") || "step_state";
+}
+
+function sanitizeArtifactName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .replace(/_+/g, "_");
+}
+
+function buildScreenshotFilename(testerStep, screenshotPrefix) {
+  const stepName = buildStepScreenshotName(testerStep);
+  const prefix = sanitizeArtifactName(screenshotPrefix);
+  return prefix ? `${prefix}__${stepName}.png` : `${stepName}.png`;
+}
+
+function ensureVisualArtifactDirectories() {
+  [BASELINE_DIR, CURRENT_DIR, "reports"].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+}
+
+function resolveScreenshotTarget(filename) {
+  ensureVisualArtifactDirectories();
+
+  const baselinePath = path.join(BASELINE_DIR, filename);
+  const currentPath = path.join(CURRENT_DIR, filename);
+  const baselineExists = fs.existsSync(baselinePath);
+
+  return {
+    mode: baselineExists ? "current" : "baseline",
+    path: baselineExists ? currentPath : baselinePath,
+  };
 }
 
 function isSameAction(a, b) {
@@ -105,6 +144,10 @@ async function withZoomedOutPage(page, callback) {
 }
 
 async function captureZoomedScreenshot(page) {
+  if (FAST_VISUAL_MODE) {
+    return page.screenshot({ fullPage: false });
+  }
+
   return withZoomedOutPage(page, () => page.screenshot({ fullPage: true }));
 }
 
@@ -216,15 +259,15 @@ function normalizeElementIndex(value) {
 
 async function clickLocator(page, locator, selectorLabel) {
   try {
-    await locator.click({ timeout: 5000 });
-    await page.waitForTimeout(1500);
+    await locator.click({ timeout: 2500 });
+    await page.waitForTimeout(700);
     return true;
   } catch (error) {
     console.log(`  Click failed on "${selectorLabel}": ${error.message}`);
 
     try {
-      await locator.click({ timeout: 3000, force: true });
-      await page.waitForTimeout(1500);
+      await locator.click({ timeout: 1000, force: true });
+      await page.waitForTimeout(700);
       console.log(`  Forced click succeeded on "${selectorLabel}"`);
       return true;
     } catch (forceError) {
@@ -245,7 +288,7 @@ async function clickAction(page, selector, elementIndex) {
 }
 
 async function clickAllAction(page, selector) {
-  const maxClicks = Number(process.env.MAX_MULTI_CLICK_ACTIONS || 20);
+  const maxClicks = Number(process.env.MAX_MULTI_CLICK_ACTIONS || 6);
   let clicks = 0;
 
   for (let attempt = 0; attempt < maxClicks; attempt++) {
@@ -312,23 +355,24 @@ async function loginSmart(page) {
   await page.locator(passwordSelector).first().fill(process.env.PASSWORD);
   await page.locator(submitSelector).first().click();
 
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(1200);
   console.log("Login complete");
 }
 
-async function runStep(page, testerStep, screenshotDir) {
+async function runStep(page, testerStep, options = {}) {
   const previousActions = [];
-  const maxIterations = Number(process.env.MAX_STEP_ITERATIONS || 8);
+  const maxIterations = Number(process.env.MAX_STEP_ITERATIONS || 3);
   let lastAction = null;
   let repeatedActionCount = 0;
   let screenshotSaved = false;
-  const stepScreenshotName = buildStepScreenshotName(testerStep);
+  const screenshotFilename = buildScreenshotFilename(testerStep, options.screenshotPrefix);
 
   async function saveStepScreenshot(reason) {
-    const filepath = path.join(screenshotDir, `${stepScreenshotName}.png`);
-    await saveComparisonScreenshot(page, filepath);
+    const target = resolveScreenshotTarget(screenshotFilename);
+    await saveComparisonScreenshot(page, target.path);
     screenshotSaved = true;
-    console.log(`  Screenshot saved: ${filepath}`);
+    console.log(`  Screenshot saved: ${target.path}`);
+    console.log(`  Screenshot mode: ${target.mode.toUpperCase()}`);
     if (reason) {
       console.log(`  Screenshot reason: ${reason}`);
     }
@@ -426,4 +470,4 @@ async function runStep(page, testerStep, screenshotDir) {
   }
 }
 
-module.exports = { loginSmart, runStep };
+module.exports = { loginSmart, runStep, ensureVisualArtifactDirectories, sanitizeArtifactName };

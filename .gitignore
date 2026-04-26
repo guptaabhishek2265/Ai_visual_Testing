@@ -1,2 +1,12 @@
 .env
+__pycache__/
 node_modules/
+allure-report/
+allure-results/
+playwright-report/
+test-results/
+screenshots/current/
+reports/diff/
+reports/diffs/
+reports/report.json
+reports/report.txt
