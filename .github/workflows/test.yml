@@ -1,6 +1,8 @@
 name: Visual Test Pipeline
 
 on:
+  repository_dispatch:
+    types: [run-visual-tests]
   pull_request:
     branches: ["main"]
   push:
