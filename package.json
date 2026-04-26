@@ -4,12 +4,31 @@
   "description": "AI-powered visual testing with Playwright and SSIM comparison",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "compare": "python utils/compare.py"
+    "test": "playwright test --grep @critical --project=chromium",
+    "test:all": "playwright test --project=chromium",
+    "test:headed": "playwright test --headed --project=chromium",
+    "test:chrome": "playwright test --project=chrome",
+    "test:ui": "playwright test --ui --project=chromium",
+    "test:ui:chrome": "playwright test --ui --project=chrome",
+    "test:smoke": "playwright test --grep @smoke --project=chromium",
+    "test:sanity": "playwright test --grep @sanity --project=chromium",
+    "test:regression": "playwright test --grep @regression --project=chromium",
+    "test:smoke:chrome": "playwright test --grep @smoke --project=chrome",
+    "test:sanity:chrome": "playwright test --grep @sanity --project=chrome",
+    "test:regression:chrome": "playwright test --grep @regression --project=chrome",
+    "test:critical": "playwright test --grep @critical --project=chromium",
+    "test:cart": "playwright test --grep @cart --project=chromium",
+    "test:checkout": "playwright test --grep @checkout --project=chromium",
+    "test:menu": "playwright test --grep @menu --project=chromium",
+    "compare": "python utils/compare.py",
+    "allure:generate": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open allure-report",
+    "ci:test": "npm run test:smoke && npm run test:sanity && npm run test:regression && npm run compare && npm run allure:generate"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2"
+    "@playwright/test": "^1.58.2",
+    "allure-commandline": "^2.34.1",
+    "allure-playwright": "^3.4.2"
   },
   "keywords": [
     "visual-testing",

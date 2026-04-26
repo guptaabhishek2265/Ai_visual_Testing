@@ -1,26 +1,133 @@
-name: Visual Regression Test
+name: Visual Test Pipeline
 
 on:
+  repository_dispatch:
+    types: [run-visual-tests]
+  pull_request:
+    branches: ["main"]
   push:
     branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      test_label:
+        description: "Optional Playwright label to run, for example @smoke, @sanity, @regression, @critical, @cart, @checkout, @menu"
+        required: false
+        default: ""
+      browser_project:
+        description: "Playwright project to run"
+        required: true
+        default: "chromium"
+        type: choice
+        options:
+          - chromium
+          - chrome
+
+concurrency:
+  group: visual-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      APP_URL: ${{ secrets.APP_URL }}
+      EMAIL: ${{ secrets.EMAIL }}
+      PASSWORD: ${{ secrets.PASSWORD }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      FAIL_ON_VISUAL_DIFF: "true"
+      TEST_LABEL: ${{ github.event.inputs.test_label || '' }}
+      BROWSER_PROJECT: ${{ github.event.inputs.browser_project || 'chromium' }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: npm
 
-      - run: npm install
-      - run: npx playwright install --with-deps
-      - run: npx playwright test
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      - name: Install Python deps
-        run: pip install opencv-python scikit-image
+      - name: Setup Java for Allure
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
-      - run: python utils/compare.py
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Validate required secrets
+        run: |
+          test -n "$APP_URL"
+          test -n "$EMAIL"
+          test -n "$PASSWORD"
+          test -n "$GROQ_API_KEY"
+
+      - name: Install Playwright browsers
+        shell: bash
+        run: |
+          npx playwright install --with-deps chromium
+          if [ "$BROWSER_PROJECT" = "chrome" ]; then
+            npx playwright install chrome
+          fi
+
+      - name: Install Python dependencies
+        run: pip install opencv-python scikit-image numpy requests
+
+      - name: Run selected visual tests
+        shell: bash
+        run: |
+          if [ -n "$TEST_LABEL" ]; then
+            npx playwright test --project="$BROWSER_PROJECT" --grep "$TEST_LABEL"
+          else
+            npx playwright test --project="$BROWSER_PROJECT"
+          fi
+
+      - name: Run visual comparison
+        run: npm run compare
+
+      - name: Generate Allure report
+        if: always()
+        run: npm run allure:generate
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+          if-no-files-found: ignore
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+          if-no-files-found: ignore
+
+      - name: Upload comparison artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-comparison-report
+          path: |
+            reports
+            screenshots/current
+            test-results
+          if-no-files-found: ignore
