@@ -102,6 +102,16 @@ function buildAction(action, selector, reasoning, extra = {}) {
   };
 }
 
+function isGenericFallbackAction(action) {
+  return (
+    action &&
+    (
+      action.action === "scroll" ||
+      (action.action === "screenshot" && action.screenshot_name === "step_state")
+    )
+  );
+}
+
 function buildHeuristicAction({ testerStep, previousActions, pageUrl, pageTitle, html, interactiveElements }) {
   const step = normalizeText(testerStep);
   const title = normalizeText(pageTitle);
@@ -353,11 +363,7 @@ async function getNextAction({
     } catch (fallbackError) {
       console.log("Text request failed, using local heuristic fallback:", fallbackError.message);
 
-      if (!isRateLimitError(fallbackError) && !isRateLimitError(error)) {
-        console.log("Proceeding with heuristic fallback to keep the test moving.");
-      }
-
-      return buildHeuristicAction({
+      const heuristicAction = buildHeuristicAction({
         testerStep,
         previousActions,
         pageUrl,
@@ -365,6 +371,19 @@ async function getNextAction({
         html,
         interactiveElements,
       });
+
+      if ((isRateLimitError(fallbackError) || isRateLimitError(error)) && isGenericFallbackAction(heuristicAction)) {
+        throw new Error(
+          "Groq rate limit reached and local fallback could not confidently satisfy this step. " +
+          "Retry after the rate-limit window, reduce test scope, or improve deterministic selectors for this flow."
+        );
+      }
+
+      if (!isRateLimitError(fallbackError) && !isRateLimitError(error)) {
+        console.log("Proceeding with heuristic fallback to keep the test moving.");
+      }
+
+      return heuristicAction;
     }
   }
 }

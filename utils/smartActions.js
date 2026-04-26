@@ -362,7 +362,7 @@ async function loginSmart(page) {
       ({ initialUrl }) => {
         const passwordInput = document.querySelector('input[type="password"], input[name="password"], #password');
         const currentUrl = window.location.href;
-        return currentUrl !== initialUrl || !passwordInput;
+        return currentUrl !== initialUrl && !passwordInput;
       },
       { initialUrl: loginUrl },
       { timeout: LOGIN_SUCCESS_TIMEOUT_MS }
@@ -384,10 +384,10 @@ async function loginSmart(page) {
     .isVisible()
     .catch(() => false);
 
-  if (stillOnLogin && passwordStillVisible) {
+  if (stillOnLogin || passwordStillVisible) {
     throw new Error(
       `Login appears to have failed. Current URL: ${page.url()}. ` +
-      "The password field is still visible after submit."
+      "The login URL or password field is still visible after submit."
     );
   }
 
