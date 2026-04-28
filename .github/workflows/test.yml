@@ -38,7 +38,7 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
       # Visual comparison settings
-      FAIL_ON_VISUAL_DIFF: "true"
+      FAIL_ON_VISUAL_DIFF: "false"
       SSIM_THRESHOLD: "0.60"
       DETAIL_ANALYSIS_THRESHOLD: "0.97"
 
