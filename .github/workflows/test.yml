@@ -36,7 +36,12 @@ jobs:
       EMAIL: ${{ secrets.EMAIL }}
       PASSWORD: ${{ secrets.PASSWORD }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+      # Visual comparison settings
       FAIL_ON_VISUAL_DIFF: "true"
+      SSIM_THRESHOLD: "0.60"
+      DETAIL_ANALYSIS_THRESHOLD: "0.97"
+
       TEST_LABEL: ${{ github.event.inputs.test_label || '' }}
       BROWSER_PROJECT: ${{ github.event.inputs.browser_project || 'chromium' }}
 
