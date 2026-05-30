@@ -13,6 +13,10 @@ on:
         description: "Optional Playwright label to run, for example @smoke, @sanity, @regression, @critical, @cart, @checkout, @menu"
         required: false
         default: ""
+      app_url:
+        description: "Optional app URL to test. Falls back to the APP_URL secret."
+        required: false
+        default: ""
       browser_project:
         description: "Playwright project to run"
         required: true
@@ -32,7 +36,7 @@ jobs:
     permissions:
       contents: read
     env:
-      APP_URL: ${{ secrets.APP_URL }}
+      APP_URL: ${{ github.event.client_payload.APP_URL || github.event.client_payload.app_url || github.event.inputs.app_url || secrets.APP_URL }}
       EMAIL: ${{ secrets.EMAIL }}
       PASSWORD: ${{ secrets.PASSWORD }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
