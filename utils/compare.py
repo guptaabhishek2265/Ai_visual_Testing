@@ -57,15 +57,7 @@ def parse_visual_file_context(file_name):
     }
 
 
-def is_add_to_cart_displacement(result):
-    file_name = result.get("file", "").lower()
-    return "add_all_the_items_to_the_cart" in file_name or "add_to_cart" in file_name
-
-
 def build_visual_issue_title(result, context):
-    if is_add_to_cart_displacement(result):
-        return "Visual regression - Add to Cart button displacement"
-
     return f"Visual regression - {context['step']}"
 
 
@@ -88,10 +80,7 @@ def build_visual_issue_summary(result, context):
         "Detected issue:",
     ]
 
-    if is_add_to_cart_displacement(result):
-        lines.append("Add to Cart button displacement detected in the regression checkout flow.")
-    else:
-        lines.append("Visual difference detected between baseline and current screenshot.")
+    lines.append("Visual difference detected between baseline and current screenshot.")
 
     lines.extend(
         [
@@ -211,15 +200,6 @@ def write_allure_visual_result(result):
         "start": start_time,
         "stop": start_time,
     }
-
-    if is_add_to_cart_displacement(result):
-        allure_result["labels"].extend(
-            [
-                {"name": "tag", "value": "cart"},
-                {"name": "tag", "value": "add-to-cart"},
-                {"name": "tag", "value": "button-displacement"},
-            ]
-        )
 
     result_path = os.path.join(ALLURE_RESULTS_DIR, f"{result_uuid}-result.json")
     with open(result_path, "w", encoding="utf-8") as result_file:
