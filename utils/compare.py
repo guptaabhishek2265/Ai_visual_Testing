@@ -253,7 +253,7 @@ def load_config():
     DETAIL_ANALYSIS_THRESHOLD = float(
         os.getenv("DETAIL_ANALYSIS_THRESHOLD", "0.97")
     )
-    GROQ_MODEL = os.getenv("GROQ_COMPARE_MODEL", "llama3-8b-8192").strip()
+    GROQ_MODEL = os.getenv("GROQ_COMPARE_MODEL", "llama-3.3-70b-versatile").strip()
     GROQ_VISION_MODEL = os.getenv(
         "GROQ_COMPARE_VISION_MODEL",
         "meta-llama/llama-4-scout-17b-16e-instruct",
@@ -276,6 +276,16 @@ def encode_image_as_data_url(image_path):
     with open(image_path, "rb") as image_file:
         encoded = base64.b64encode(image_file.read()).decode("utf-8")
     return f"data:image/png;base64,{encoded}"
+
+
+def raise_for_groq_error(response):
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as error:
+        detail = response.text.strip()
+        if detail:
+            raise requests.HTTPError(f"{error} - {detail}", response=response) from error
+        raise
 
 
 def get_llm_analysis(filename, score, diff_path):
@@ -324,7 +334,7 @@ Focus only on visible differences highlighted in the diff image.
             },
             timeout=30,
         )
-        response.raise_for_status()
+        raise_for_groq_error(response)
 
         data = response.json()
         return data["choices"][0]["message"]["content"].strip()
@@ -357,7 +367,7 @@ Focus on:
                 },
                 timeout=30,
             )
-            response.raise_for_status()
+            raise_for_groq_error(response)
 
             data = response.json()
             return (
