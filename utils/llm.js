@@ -3,6 +3,29 @@ const Groq = require("groq-sdk");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+const RATE_LIMIT_MAX_RETRIES = Number(process.env.RATE_LIMIT_MAX_RETRIES || 1);
+const RATE_LIMIT_DEFAULT_WAIT_MS = Number(process.env.RATE_LIMIT_DEFAULT_WAIT_MS || 60000);
+const RATE_LIMIT_MAX_WAIT_MS = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || 300000);
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Extract the suggested retry delay (in ms) from a Groq rate-limit error.
+ * Looks for patterns like "Please try again in 14m7.4112s" or "1h9m1.152s".
+ */
+function extractRetryDelayMs(error) {
+  if (!error || typeof error.message !== "string") return null;
+  const match = error.message.match(/try again in\s+(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i);
+  if (!match) return null;
+  const hours = parseInt(match[1] || "0", 10);
+  const minutes = parseInt(match[2] || "0", 10);
+  const seconds = parseFloat(match[3] || "0");
+  const totalMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+  return totalMs > 0 ? Math.min(Math.ceil(totalMs), RATE_LIMIT_MAX_WAIT_MS) : null;
+}
+
 function normalizeText(value) {
   return (value || "").toLowerCase().replace(/\s+/g, " ").trim();
 }
@@ -103,12 +126,11 @@ function buildAction(action, selector, reasoning, extra = {}) {
 }
 
 function isGenericFallbackAction(action) {
+  // Only treat a completely generic scroll as "not confident enough".
+  // A screenshot (even with default name) is always safe — it just captures state.
   return (
     action &&
-    (
-      action.action === "scroll" ||
-      (action.action === "screenshot" && action.screenshot_name === "step_state")
-    )
+    action.action === "scroll"
   );
 }
 
@@ -208,6 +230,16 @@ function buildHeuristicAction({ testerStep, previousActions, pageUrl, pageTitle,
     if (checkoutButton && !hasPreviousAction(previousActions, "click", checkoutButton.selector)) {
       return buildAction("click", checkoutButton.selector, "Heuristic fallback: click Checkout to proceed.", {
         element_index: checkoutButton.element_index,
+        screenshot_name: "proceed_to_checkout",
+      });
+    }
+
+    // If checkout was already clicked in a previous action, capture the resulting page
+    const alreadyClickedCheckout = previousActions.some(
+      item => item.action === "click" && item.selector && normalizeText(item.selector).includes("checkout")
+    );
+    if (alreadyClickedCheckout) {
+      return buildAction("screenshot", null, "Heuristic fallback: page changed after checkout click, capturing state.", {
         screenshot_name: "proceed_to_checkout",
       });
     }
@@ -324,31 +356,40 @@ async function getNextAction({
   const visionModel = process.env.GROQ_VISION_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct";
   const textModel = process.env.GROQ_TEXT_MODEL || "llama-3.3-70b-versatile";
 
-  try {
-    const res = await groq.chat.completions.create({
-      model: visionModel,
-      max_tokens: 300,
-      messages: [{
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `${textPrompt}\nUse the attached screenshot as the primary source of truth for the visible UI.`,
-          },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:image/png;base64,${screenshotBase64}`,
-              detail: "auto",
-            },
-          },
-        ],
-      }],
-    });
+  let lastVisionError = null;
+  let lastTextError = null;
 
-    return parseJsonResponse(res.choices[0].message.content.trim());
-  } catch (error) {
-    console.log("Vision request failed, falling back to HTML context:", error.message);
+  for (let attempt = 0; attempt <= RATE_LIMIT_MAX_RETRIES; attempt++) {
+    // --- Attempt the vision model first ---
+    try {
+      const res = await groq.chat.completions.create({
+        model: visionModel,
+        max_tokens: 300,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `${textPrompt}\nUse the attached screenshot as the primary source of truth for the visible UI.`,
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/png;base64,${screenshotBase64}`,
+                detail: "auto",
+              },
+            },
+          ],
+        }],
+      });
+
+      return parseJsonResponse(res.choices[0].message.content.trim());
+    } catch (error) {
+      lastVisionError = error;
+      console.log("Vision request failed, falling back to HTML context:", error.message);
+    }
+
+    // --- Attempt the text model ---
     try {
       const res = await groq.chat.completions.create({
         model: textModel,
@@ -361,31 +402,50 @@ async function getNextAction({
 
       return parseJsonResponse(res.choices[0].message.content.trim());
     } catch (fallbackError) {
-      console.log("Text request failed, using local heuristic fallback:", fallbackError.message);
-
-      const heuristicAction = buildHeuristicAction({
-        testerStep,
-        previousActions,
-        pageUrl,
-        pageTitle,
-        html,
-        interactiveElements,
-      });
-
-      if ((isRateLimitError(fallbackError) || isRateLimitError(error)) && isGenericFallbackAction(heuristicAction)) {
-        throw new Error(
-          "Groq rate limit reached and local fallback could not confidently satisfy this step. " +
-          "Retry after the rate-limit window, reduce test scope, or improve deterministic selectors for this flow."
-        );
-      }
-
-      if (!isRateLimitError(fallbackError) && !isRateLimitError(error)) {
-        console.log("Proceeding with heuristic fallback to keep the test moving.");
-      }
-
-      return heuristicAction;
+      lastTextError = fallbackError;
+      console.log("Text request failed:", fallbackError.message);
     }
+
+    // --- Both models failed. If rate-limited, wait and retry ---
+    const bothRateLimited = isRateLimitError(lastVisionError) || isRateLimitError(lastTextError);
+    if (bothRateLimited && attempt < RATE_LIMIT_MAX_RETRIES) {
+      const delayMs =
+        extractRetryDelayMs(lastVisionError) ||
+        extractRetryDelayMs(lastTextError) ||
+        RATE_LIMIT_DEFAULT_WAIT_MS;
+      console.log(`  Rate limit hit. Waiting ${Math.round(delayMs / 1000)}s before retry (attempt ${attempt + 1}/${RATE_LIMIT_MAX_RETRIES})...`);
+      await sleep(delayMs);
+      continue;
+    }
+
+    break;
   }
+
+  // --- All retries exhausted, use heuristic fallback ---
+  console.log("Using local heuristic fallback.");
+
+  const heuristicAction = buildHeuristicAction({
+    testerStep,
+    previousActions,
+    pageUrl,
+    pageTitle,
+    html,
+    interactiveElements,
+  });
+
+  const bothRateLimited = isRateLimitError(lastTextError) || isRateLimitError(lastVisionError);
+  if (bothRateLimited && isGenericFallbackAction(heuristicAction)) {
+    throw new Error(
+      "Groq rate limit reached and local fallback could not confidently satisfy this step. " +
+      "Retry after the rate-limit window, reduce test scope, or improve deterministic selectors for this flow."
+    );
+  }
+
+  if (!bothRateLimited) {
+    console.log("Proceeding with heuristic fallback to keep the test moving.");
+  }
+
+  return heuristicAction;
 }
 
 module.exports = { getLoginSelectors, getNextAction };

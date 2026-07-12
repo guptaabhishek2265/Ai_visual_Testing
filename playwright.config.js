@@ -1,7 +1,7 @@
 require("dotenv").config();
 const { defineConfig, devices } = require("@playwright/test");
 
-const testTimeout = Number(process.env.PLAYWRIGHT_TIMEOUT_MS || 300000);
+const testTimeout = Number(process.env.PLAYWRIGHT_TIMEOUT_MS || 600000);
 
 module.exports = defineConfig({
   fullyParallel: false,
