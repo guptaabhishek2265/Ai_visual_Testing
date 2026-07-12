@@ -1,316 +1,602 @@
 {
   "summary": {
-    "pass": 0,
-    "fail": 5,
-    "missing_baseline": 0,
-    "size_mismatch": 0,
-    "ssim_threshold": 0.6,
-    "changed_pixel_ratio_threshold": 0.003,
-    "largest_region_ratio_threshold": 0.0008
+    "total": 5,
+    "passed": 1,
+    "warning": 4,
+    "failed": 0,
+    "missing_baseline": 0
   },
   "results": [
     {
-      "file": "add_all_the_items_to_the_cart.png",
-      "status": "FAIL",
-      "ssim_score": 0.97,
-      "changed_pixel_ratio": 0.03662109375,
-      "largest_region_ratio": 0.009722764756944445,
-      "changed_regions": [
+      "file": "chromium_regression_critical_checkout_path__add_all_the_items_to_the_cart.png",
+      "baseline_path": "screenshots/baseline\\chromium_regression_critical_checkout_path__add_all_the_items_to_the_cart.png",
+      "current_path": "screenshots/current\\chromium_regression_critical_checkout_path__add_all_the_items_to_the_cart.png",
+      "diff_path": "reports\\diff\\diff_chromium_regression_critical_checkout_path__add_all_the_items_to_the_cart.png",
+      "regions": [
         {
-          "x": 290,
-          "y": 573,
+          "x": 294,
+          "y": 555,
           "width": 131,
-          "height": 76,
-          "area": 8960.5,
-          "area_ratio": 0.009722764756944445
+          "height": 89,
+          "area": 11659
         },
         {
           "x": 455,
-          "y": 579,
-          "width": 126,
-          "height": 71,
-          "area": 8410.5,
-          "area_ratio": 0.0091259765625
-        },
-        {
-          "x": 289,
-          "y": 289,
-          "width": 123,
-          "height": 67,
-          "area": 7891.0,
-          "area_ratio": 0.00856228298611111
-        },
-        {
-          "x": 450,
-          "y": 295,
-          "width": 124,
-          "height": 65,
-          "area": 7780.0,
-          "area_ratio": 0.008441840277777777
-        }
-      ],
-      "strategy_used": "same_size",
-      "diff_overlay": "reports\\diffs\\add_all_the_items_to_the_cart.png"
-    },
-    {
-      "file": "browse_the_food_menu.png",
-      "status": "FAIL",
-      "ssim_score": 0.9443,
-      "changed_pixel_ratio": 0.046155598958333335,
-      "largest_region_ratio": 0.008701714409722222,
-      "changed_regions": [
-        {
-          "x": 450,
-          "y": 284,
-          "width": 124,
-          "height": 76,
-          "area": 8019.5,
-          "area_ratio": 0.008701714409722222
-        },
-        {
-          "x": 289,
-          "y": 284,
-          "width": 123,
-          "height": 76,
-          "area": 7981.0,
-          "area_ratio": 0.008659939236111112
+          "y": 559,
+          "width": 132,
+          "height": 88,
+          "area": 11616
         },
         {
           "x": 294,
-          "y": 579,
-          "width": 137,
-          "height": 75,
-          "area": 7829.0,
-          "area_ratio": 0.008495008680555555
+          "y": 422,
+          "width": 125,
+          "height": 89,
+          "area": 11125
         },
         {
           "x": 455,
-          "y": 579,
-          "width": 128,
-          "height": 67,
-          "area": 7728.5,
-          "area_ratio": 0.008385959201388888
-        },
-        {
-          "x": 594,
-          "y": 198,
-          "width": 160,
-          "height": 42,
-          "area": 6414.0,
-          "area_ratio": 0.006959635416666667
-        },
-        {
-          "x": 264,
-          "y": 645,
-          "width": 227,
-          "height": 32,
-          "area": 2813.0,
-          "area_ratio": 0.0030523003472222223
-        },
-        {
-          "x": 424,
-          "y": 630,
-          "width": 25,
-          "height": 14,
-          "area": 168.5,
-          "area_ratio": 0.0001828342013888889
-        },
-        {
-          "x": 355,
-          "y": 671,
-          "width": 41,
-          "height": 6,
-          "area": 111.0,
-          "area_ratio": 0.00012044270833333334
-        }
-      ],
-      "strategy_used": "same_size",
-      "diff_overlay": "reports\\diffs\\browse_the_food_menu.png"
-    },
-    {
-      "file": "check_the_dashboard.png",
-      "status": "FAIL",
-      "ssim_score": 0.9494,
-      "changed_pixel_ratio": 0.038550347222222225,
-      "largest_region_ratio": 0.008495008680555555,
-      "changed_regions": [
-        {
-          "x": 294,
-          "y": 579,
-          "width": 137,
-          "height": 75,
-          "area": 7829.0,
-          "area_ratio": 0.008495008680555555
-        },
-        {
-          "x": 450,
-          "y": 295,
-          "width": 124,
-          "height": 65,
-          "area": 7780.0,
-          "area_ratio": 0.008441840277777777
-        },
-        {
-          "x": 455,
-          "y": 579,
-          "width": 128,
-          "height": 67,
-          "area": 7728.5,
-          "area_ratio": 0.008385959201388888
-        },
-        {
-          "x": 289,
-          "y": 295,
-          "width": 123,
-          "height": 65,
-          "area": 7716.0,
-          "area_ratio": 0.008372395833333334
-        },
-        {
-          "x": 264,
-          "y": 645,
-          "width": 227,
-          "height": 32,
-          "area": 2813.0,
-          "area_ratio": 0.0030523003472222223
-        },
-        {
-          "x": 424,
-          "y": 630,
-          "width": 25,
-          "height": 14,
-          "area": 168.5,
-          "area_ratio": 0.0001828342013888889
-        },
-        {
-          "x": 355,
-          "y": 671,
-          "width": 41,
-          "height": 6,
-          "area": 111.0,
-          "area_ratio": 0.00012044270833333334
-        }
-      ],
-      "strategy_used": "same_size",
-      "diff_overlay": "reports\\diffs\\check_the_dashboard.png"
-    },
-    {
-      "file": "go_to_the_cart_page.png",
-      "status": "FAIL",
-      "ssim_score": 0.954,
-      "changed_pixel_ratio": 0.04603081597222222,
-      "largest_region_ratio": 0.009647352430555556,
-      "changed_regions": [
-        {
-          "x": 291,
-          "y": 573,
-          "width": 129,
-          "height": 76,
-          "area": 8891.0,
-          "area_ratio": 0.009647352430555556
-        },
-        {
-          "x": 455,
-          "y": 579,
+          "y": 428,
           "width": 126,
-          "height": 71,
-          "area": 8410.5,
-          "area_ratio": 0.0091259765625
+          "height": 87,
+          "area": 10962
         },
         {
-          "x": 289,
-          "y": 279,
-          "width": 123,
-          "height": 81,
-          "area": 8002.5,
-          "area_ratio": 0.008683268229166667
-        },
-        {
-          "x": 450,
-          "y": 295,
+          "x": 463,
+          "y": 522,
           "width": 124,
-          "height": 65,
-          "area": 7780.0,
-          "area_ratio": 0.008441840277777777
+          "height": 34,
+          "area": 4216
         },
         {
-          "x": 594,
-          "y": 198,
-          "width": 160,
-          "height": 42,
-          "area": 6414.0,
-          "area_ratio": 0.006959635416666667
+          "x": 302,
+          "y": 518,
+          "width": 123,
+          "height": 34,
+          "area": 4182
         },
         {
-          "x": 305,
-          "y": 447,
-          "width": 69,
-          "height": 15,
-          "area": 425.5,
-          "area_ratio": 0.00046169704861111113
+          "x": 446,
+          "y": 638,
+          "width": 144,
+          "height": 26,
+          "area": 3744
         },
         {
-          "x": 317,
-          "y": 528,
-          "width": 60,
+          "x": 285,
+          "y": 634,
+          "width": 143,
+          "height": 26,
+          "area": 3718
+        },
+        {
+          "x": 1142,
+          "y": 691,
+          "width": 38,
+          "height": 20,
+          "area": 760
+        },
+        {
+          "x": 1079,
+          "y": 452,
+          "width": 27,
           "height": 18,
-          "area": 337.5,
-          "area_ratio": 0.0003662109375
+          "area": 486
         },
         {
-          "x": 352,
-          "y": 478,
-          "width": 30,
-          "height": 16,
-          "area": 196.5,
-          "area_ratio": 0.00021321614583333332
+          "x": 1036,
+          "y": 451,
+          "width": 24,
+          "height": 18,
+          "area": 432
         },
         {
-          "x": 305,
-          "y": 477,
-          "width": 28,
-          "height": 16,
-          "area": 142.0,
-          "area_ratio": 0.0001540798611111111
+          "x": 1135,
+          "y": 384,
+          "width": 25,
+          "height": 14,
+          "area": 350
         },
         {
-          "x": 387,
-          "y": 480,
-          "width": 18,
-          "height": 13,
-          "area": 101.5,
-          "area_ratio": 0.00011013454861111112
+          "x": 1152,
+          "y": 660,
+          "width": 19,
+          "height": 14,
+          "area": 266
         }
       ],
-      "strategy_used": "same_size",
-      "diff_overlay": "reports\\diffs\\go_to_the_cart_page.png"
+      "score": 0.956833,
+      "difference_summary": "Detected 13 highlighted difference region(s). Region 1: x=294, y=555, w=131, h=89, area=11659 Region 2: x=455, y=559, w=132, h=88, area=11616 Region 3: x=294, y=422, w=125, h=89, area=11125 Region 4: x=455, y=428, w=126, h=87, area=10962 Region 5: x=463, y=522, w=124, h=34, area=4216",
+      "status": "warning",
+      "ai_insight": "The visual difference shows a shopping cart update with 12 items of \"Juicess\" added. \nThe change appears to be a text/content change, specifically a quantity update. \nThe change looks minor."
     },
     {
-      "file": "proceed_to_checkout.png",
-      "status": "FAIL",
-      "ssim_score": 0.9937,
-      "changed_pixel_ratio": 0.006465928819444445,
-      "largest_region_ratio": 0.0034130859375,
-      "changed_regions": [
+      "file": "chromium_regression_critical_checkout_path__browse_the_food_menu.png",
+      "baseline_path": "screenshots/baseline\\chromium_regression_critical_checkout_path__browse_the_food_menu.png",
+      "current_path": "screenshots/current\\chromium_regression_critical_checkout_path__browse_the_food_menu.png",
+      "diff_path": "reports\\diff\\diff_chromium_regression_critical_checkout_path__browse_the_food_menu.png",
+      "regions": [
         {
-          "x": 289,
-          "y": 295,
-          "width": 51,
-          "height": 65,
-          "area": 3145.5,
-          "area_ratio": 0.0034130859375
+          "x": 455,
+          "y": 559,
+          "width": 132,
+          "height": 88,
+          "area": 11616
         },
         {
-          "x": 297,
-          "y": 580,
-          "width": 43,
-          "height": 64,
-          "area": 2604.5,
-          "area_ratio": 0.0028260633680555554
+          "x": 294,
+          "y": 559,
+          "width": 131,
+          "height": 88,
+          "area": 11528
+        },
+        {
+          "x": 455,
+          "y": 428,
+          "width": 126,
+          "height": 87,
+          "area": 10962
+        },
+        {
+          "x": 294,
+          "y": 428,
+          "width": 125,
+          "height": 87,
+          "area": 10875
+        },
+        {
+          "x": 463,
+          "y": 522,
+          "width": 124,
+          "height": 34,
+          "area": 4216
+        },
+        {
+          "x": 302,
+          "y": 522,
+          "width": 124,
+          "height": 34,
+          "area": 4216
+        },
+        {
+          "x": 279,
+          "y": 674,
+          "width": 301,
+          "height": 14,
+          "area": 4214
+        },
+        {
+          "x": 446,
+          "y": 638,
+          "width": 144,
+          "height": 26,
+          "area": 3744
+        },
+        {
+          "x": 285,
+          "y": 638,
+          "width": 143,
+          "height": 26,
+          "area": 3718
+        },
+        {
+          "x": 793,
+          "y": 675,
+          "width": 242,
+          "height": 13,
+          "area": 3146
+        },
+        {
+          "x": 1100,
+          "y": 676,
+          "width": 126,
+          "height": 11,
+          "area": 1386
+        },
+        {
+          "x": 1036,
+          "y": 676,
+          "width": 53,
+          "height": 11,
+          "area": 583
+        },
+        {
+          "x": 262,
+          "y": 672,
+          "width": 16,
+          "height": 10,
+          "area": 160
+        },
+        {
+          "x": 1234,
+          "y": 676,
+          "width": 12,
+          "height": 12,
+          "area": 144
+        },
+        {
+          "x": 775,
+          "y": 680,
+          "width": 10,
+          "height": 5,
+          "area": 50
         }
       ],
-      "strategy_used": "same_size",
-      "diff_overlay": "reports\\diffs\\proceed_to_checkout.png"
+      "score": 0.950187,
+      "difference_summary": "Detected 15 highlighted difference region(s). Region 1: x=455, y=559, w=132, h=88, area=11616 Region 2: x=294, y=559, w=131, h=88, area=11528 Region 3: x=455, y=428, w=126, h=87, area=10962 Region 4: x=294, y=428, w=125, h=87, area=10875 Region 5: x=463, y=522, w=124, h=34, area=4216",
+      "status": "warning",
+      "ai_insight": "The visual difference in this diff image is the presence of red rectangles around the 'Add products to begin shopping' text. \nThe change appears to be a text/content change, as the text is present but highlighted. \nThe change looks minor."
+    },
+    {
+      "file": "chromium_regression_critical_checkout_path__proceed_to_checkout.png",
+      "baseline_path": "screenshots/baseline\\chromium_regression_critical_checkout_path__proceed_to_checkout.png",
+      "current_path": "screenshots/current\\chromium_regression_critical_checkout_path__proceed_to_checkout.png",
+      "diff_path": "reports\\diff\\diff_chromium_regression_critical_checkout_path__proceed_to_checkout.png",
+      "regions": [
+        {
+          "x": 294,
+          "y": 372,
+          "width": 49,
+          "height": 88,
+          "area": 4312
+        },
+        {
+          "x": 294,
+          "y": 241,
+          "width": 49,
+          "height": 87,
+          "area": 4263
+        },
+        {
+          "x": 285,
+          "y": 452,
+          "width": 52,
+          "height": 25,
+          "area": 1300
+        },
+        {
+          "x": 468,
+          "y": 299,
+          "width": 59,
+          "height": 18,
+          "area": 1062
+        },
+        {
+          "x": 302,
+          "y": 337,
+          "width": 41,
+          "height": 25,
+          "area": 1025
+        },
+        {
+          "x": 1142,
+          "y": 504,
+          "width": 38,
+          "height": 20,
+          "area": 760
+        },
+        {
+          "x": 1079,
+          "y": 265,
+          "width": 27,
+          "height": 18,
+          "area": 486
+        },
+        {
+          "x": 1036,
+          "y": 264,
+          "width": 24,
+          "height": 18,
+          "area": 432
+        },
+        {
+          "x": 440,
+          "y": 145,
+          "width": 22,
+          "height": 16,
+          "area": 352
+        },
+        {
+          "x": 836,
+          "y": 155,
+          "width": 25,
+          "height": 14,
+          "area": 350
+        },
+        {
+          "x": 1135,
+          "y": 197,
+          "width": 24,
+          "height": 14,
+          "area": 336
+        },
+        {
+          "x": 1135,
+          "y": 540,
+          "width": 16,
+          "height": 20,
+          "area": 320
+        },
+        {
+          "x": 835,
+          "y": 288,
+          "width": 16,
+          "height": 20,
+          "area": 320
+        },
+        {
+          "x": 1152,
+          "y": 473,
+          "width": 19,
+          "height": 14,
+          "area": 266
+        },
+        {
+          "x": 841,
+          "y": 642,
+          "width": 13,
+          "height": 16,
+          "area": 208
+        },
+        {
+          "x": 429,
+          "y": 280,
+          "width": 18,
+          "height": 11,
+          "area": 198
+        },
+        {
+          "x": 1163,
+          "y": 545,
+          "width": 8,
+          "height": 10,
+          "area": 80
+        },
+        {
+          "x": 863,
+          "y": 293,
+          "width": 8,
+          "height": 10,
+          "area": 80
+        }
+      ],
+      "score": 0.988621,
+      "difference_summary": "Detected 18 highlighted difference region(s). Region 1: x=294, y=372, w=49, h=88, area=4312 Region 2: x=294, y=241, w=49, h=87, area=4263 Region 3: x=285, y=452, w=52, h=25, area=1300 Region 4: x=468, y=299, w=59, h=18, area=1062 Region 5: x=302, y=337, w=41, h=25, area=1025",
+      "status": "passed"
+    },
+    {
+      "file": "chromium_sanity_menu_availability__browse_the_food_menu.png",
+      "baseline_path": "screenshots/baseline\\chromium_sanity_menu_availability__browse_the_food_menu.png",
+      "current_path": "screenshots/current\\chromium_sanity_menu_availability__browse_the_food_menu.png",
+      "diff_path": "reports\\diff\\diff_chromium_sanity_menu_availability__browse_the_food_menu.png",
+      "regions": [
+        {
+          "x": 455,
+          "y": 559,
+          "width": 132,
+          "height": 88,
+          "area": 11616
+        },
+        {
+          "x": 294,
+          "y": 559,
+          "width": 131,
+          "height": 88,
+          "area": 11528
+        },
+        {
+          "x": 455,
+          "y": 428,
+          "width": 126,
+          "height": 87,
+          "area": 10962
+        },
+        {
+          "x": 294,
+          "y": 428,
+          "width": 125,
+          "height": 87,
+          "area": 10875
+        },
+        {
+          "x": 463,
+          "y": 522,
+          "width": 124,
+          "height": 34,
+          "area": 4216
+        },
+        {
+          "x": 302,
+          "y": 522,
+          "width": 124,
+          "height": 34,
+          "area": 4216
+        },
+        {
+          "x": 279,
+          "y": 674,
+          "width": 301,
+          "height": 14,
+          "area": 4214
+        },
+        {
+          "x": 446,
+          "y": 638,
+          "width": 144,
+          "height": 26,
+          "area": 3744
+        },
+        {
+          "x": 285,
+          "y": 638,
+          "width": 143,
+          "height": 26,
+          "area": 3718
+        },
+        {
+          "x": 793,
+          "y": 675,
+          "width": 242,
+          "height": 13,
+          "area": 3146
+        },
+        {
+          "x": 1100,
+          "y": 676,
+          "width": 126,
+          "height": 11,
+          "area": 1386
+        },
+        {
+          "x": 1036,
+          "y": 676,
+          "width": 53,
+          "height": 11,
+          "area": 583
+        },
+        {
+          "x": 262,
+          "y": 672,
+          "width": 16,
+          "height": 10,
+          "area": 160
+        },
+        {
+          "x": 1234,
+          "y": 676,
+          "width": 12,
+          "height": 12,
+          "area": 144
+        },
+        {
+          "x": 775,
+          "y": 680,
+          "width": 10,
+          "height": 5,
+          "area": 50
+        }
+      ],
+      "score": 0.950187,
+      "difference_summary": "Detected 15 highlighted difference region(s). Region 1: x=455, y=559, w=132, h=88, area=11616 Region 2: x=294, y=559, w=131, h=88, area=11528 Region 3: x=455, y=428, w=126, h=87, area=10962 Region 4: x=294, y=428, w=125, h=87, area=10875 Region 5: x=463, y=522, w=124, h=34, area=4216",
+      "status": "warning",
+      "ai_insight": "The visible differences highlighted in the diff image appear to be related to the addition of a watermark or logo, specifically the \"Las Pinter\" text and icon.\n\nThe change looks like an added element, specifically a text/content change with the addition of a logo.\n\nThe change looks minor."
+    },
+    {
+      "file": "chromium_smoke_dashboard_overview__check_the_dashboard.png",
+      "baseline_path": "screenshots/baseline\\chromium_smoke_dashboard_overview__check_the_dashboard.png",
+      "current_path": "screenshots/current\\chromium_smoke_dashboard_overview__check_the_dashboard.png",
+      "diff_path": "reports\\diff\\diff_chromium_smoke_dashboard_overview__check_the_dashboard.png",
+      "regions": [
+        {
+          "x": 455,
+          "y": 559,
+          "width": 132,
+          "height": 88,
+          "area": 11616
+        },
+        {
+          "x": 294,
+          "y": 559,
+          "width": 131,
+          "height": 88,
+          "area": 11528
+        },
+        {
+          "x": 455,
+          "y": 428,
+          "width": 126,
+          "height": 87,
+          "area": 10962
+        },
+        {
+          "x": 294,
+          "y": 428,
+          "width": 125,
+          "height": 87,
+          "area": 10875
+        },
+        {
+          "x": 463,
+          "y": 522,
+          "width": 124,
+          "height": 34,
+          "area": 4216
+        },
+        {
+          "x": 302,
+          "y": 522,
+          "width": 124,
+          "height": 34,
+          "area": 4216
+        },
+        {
+          "x": 279,
+          "y": 674,
+          "width": 301,
+          "height": 14,
+          "area": 4214
+        },
+        {
+          "x": 446,
+          "y": 638,
+          "width": 144,
+          "height": 26,
+          "area": 3744
+        },
+        {
+          "x": 285,
+          "y": 638,
+          "width": 143,
+          "height": 26,
+          "area": 3718
+        },
+        {
+          "x": 793,
+          "y": 675,
+          "width": 242,
+          "height": 13,
+          "area": 3146
+        },
+        {
+          "x": 1100,
+          "y": 676,
+          "width": 126,
+          "height": 11,
+          "area": 1386
+        },
+        {
+          "x": 1036,
+          "y": 676,
+          "width": 53,
+          "height": 11,
+          "area": 583
+        },
+        {
+          "x": 262,
+          "y": 672,
+          "width": 16,
+          "height": 10,
+          "area": 160
+        },
+        {
+          "x": 1234,
+          "y": 676,
+          "width": 12,
+          "height": 12,
+          "area": 144
+        },
+        {
+          "x": 775,
+          "y": 680,
+          "width": 10,
+          "height": 5,
+          "area": 50
+        }
+      ],
+      "score": 0.950187,
+      "difference_summary": "Detected 15 highlighted difference region(s). Region 1: x=455, y=559, w=132, h=88, area=11616 Region 2: x=294, y=559, w=131, h=88, area=11528 Region 3: x=455, y=428, w=126, h=87, area=10962 Region 4: x=294, y=428, w=125, h=87, area=10875 Region 5: x=463, y=522, w=124, h=34, area=4216",
+      "status": "warning",
+      "ai_insight": "The highlighted visual differences show a layout shift in the lower right corner, specifically with the 'Shopping Cart' section, and possibly a small text change or style change. \n\nThe change appears to be minor. \n\nThe diff image shows red rectangles indicating detected changes, primarily around the 'Shopping Cart' section and potentially some text or styling adjustments."
     }
   ]
 }

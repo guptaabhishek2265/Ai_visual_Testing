@@ -1,40 +1,35 @@
-add_all_the_items_to_the_cart.png -> OK but visually different in detail (Score: 0.970)
-   Difference Summary: Detected 4 highlighted difference region(s). Region 1: x=446, y=566, w=144, h=90, area=12960 Region 2: x=285, y=562, w=143, h=90, area=12870 Region 3: x=287, y=286, w=128, h=74, area=9472 Region 4: x=447, y=292, w=130, h=71, area=9230
-   AI Insight: The visible differences highlighted in the diff image are:
-- Product price and details in the product cards and the shopping cart.
+chromium_regression_critical_checkout_path__add_all_the_items_to_the_cart.png -> OK but visually different in detail (Score: 0.957)
+   Difference Summary: Detected 13 highlighted difference region(s). Region 1: x=294, y=555, w=131, h=89, area=11659 Region 2: x=455, y=559, w=132, h=88, area=11616 Region 3: x=294, y=422, w=125, h=89, area=11125 Region 4: x=455, y=428, w=126, h=87, area=10962 Region 5: x=463, y=522, w=124, h=34, area=4216
+   AI Insight: The visual difference shows a shopping cart update with 12 items of "Juicess" added. 
+The change appears to be a text/content change, specifically a quantity update. 
+The change looks minor.
+   Diff Image: reports\diff\diff_chromium_regression_critical_checkout_path__add_all_the_items_to_the_cart.png
 
-The change looks like a **text/content change**, specifically a **price update** for the "Juicess" product, with its price changing from ₹500.00 to ₹10,000.00.
+chromium_regression_critical_checkout_path__browse_the_food_menu.png -> OK but visually different in detail (Score: 0.950)
+   Difference Summary: Detected 15 highlighted difference region(s). Region 1: x=455, y=559, w=132, h=88, area=11616 Region 2: x=294, y=559, w=131, h=88, area=11528 Region 3: x=455, y=428, w=126, h=87, area=10962 Region 4: x=294, y=428, w=125, h=87, area=10875 Region 5: x=463, y=522, w=124, h=34, area=4216
+   AI Insight: The visual difference in this diff image is the presence of red rectangles around the 'Add products to begin shopping' text. 
+The change appears to be a text/content change, as the text is present but highlighted. 
+The change looks minor.
+   Diff Image: reports\diff\diff_chromium_regression_critical_checkout_path__browse_the_food_menu.png
 
-The change appears to be **major**, as it significantly affects the product's price and the shopping cart's subtotal, tax, and total.
-   Diff Image: reports\diff\diff_add_all_the_items_to_the_cart.png
+chromium_regression_critical_checkout_path__proceed_to_checkout.png -> OK (Score: 0.989)
+   Difference Summary: Detected 18 highlighted difference region(s). Region 1: x=294, y=372, w=49, h=88, area=4312 Region 2: x=294, y=241, w=49, h=87, area=4263 Region 3: x=285, y=452, w=52, h=25, area=1300 Region 4: x=468, y=299, w=59, h=18, area=1062 Region 5: x=302, y=337, w=41, h=25, area=1025
+   Diff Image: reports\diff\diff_chromium_regression_critical_checkout_path__proceed_to_checkout.png
+chromium_sanity_menu_availability__browse_the_food_menu.png -> OK but visually different in detail (Score: 0.950)
+   Difference Summary: Detected 15 highlighted difference region(s). Region 1: x=455, y=559, w=132, h=88, area=11616 Region 2: x=294, y=559, w=131, h=88, area=11528 Region 3: x=455, y=428, w=126, h=87, area=10962 Region 4: x=294, y=428, w=125, h=87, area=10875 Region 5: x=463, y=522, w=124, h=34, area=4216
+   AI Insight: The visible differences highlighted in the diff image appear to be related to the addition of a watermark or logo, specifically the "Las Pinter" text and icon.
 
-browse_the_food_menu.png -> OK but visually different in detail (Score: 0.944)
-   Difference Summary: Detected 30 highlighted difference region(s). Region 1: x=261, y=566, w=339, h=114, area=38646 Region 2: x=286, y=280, w=129, h=83, area=10707 Region 3: x=447, y=281, w=130, h=82, area=10660 Region 4: x=591, y=195, w=166, h=48, area=7968 Region 5: x=1140, y=603, w=82, h=76, area=6232
-   AI Insight: Here is the analysis of the visual differences:
-
-The visual differences appear to be related to layout and alignment issues, with several red rectangles highlighting areas of discrepancy. 
-The changes seem to be a mix of layout shifts and possible alignment issues, particularly noticeable in the lower sections of the image and the product cards. 
-The changes look minor, as they do not seem to affect the overall functionality or major visual elements of the page. 
-The similarity score of 0.944 also suggests that the changes are relatively minor.
-   Diff Image: reports\diff\diff_browse_the_food_menu.png
-
-check_the_dashboard.png -> OK but visually different in detail (Score: 0.949)
-   Difference Summary: Detected 29 highlighted difference region(s). Region 1: x=261, y=566, w=339, h=114, area=38646 Region 2: x=447, y=292, w=130, h=71, area=9230 Region 3: x=286, y=292, w=129, h=71, area=9159 Region 4: x=1140, y=603, w=82, h=76, area=6232 Region 5: x=1109, y=603, w=44, h=76, area=3344
-   AI Insight: The diff image highlights several areas of change. 
-The changes appear to be related to layout shifts or potential alignment issues, particularly around the product cards and buttons, as well as changes at the bottom of the page. 
-The changes appear to be minor.
-   Diff Image: reports\diff\diff_check_the_dashboard.png
-
-go_to_the_cart_page.png -> OK but visually different in detail (Score: 0.954)
-   Difference Summary: Detected 8 highlighted difference region(s). Region 1: x=446, y=566, w=144, h=90, area=12960 Region 2: x=285, y=275, w=143, h=88, area=12584 Region 3: x=285, y=566, w=143, h=86, area=12298 Region 4: x=447, y=292, w=130, h=71, area=9230 Region 5: x=591, y=195, w=166, h=48, area=7968
-   AI Insight: The visually detected changes are:
-- Price and quantity change on the right sidebar.
-
-The type of change appears to be a text/content change.
+The change looks like an added element, specifically a text/content change with the addition of a logo.
 
 The change looks minor.
-   Diff Image: reports\diff\diff_go_to_the_cart_page.png
+   Diff Image: reports\diff\diff_chromium_sanity_menu_availability__browse_the_food_menu.png
 
-proceed_to_checkout.png -> OK (Score: 0.994)
-   Difference Summary: Detected 2 highlighted difference region(s). Region 1: x=285, y=566, w=58, h=90, area=5220 Region 2: x=286, y=293, w=57, h=70, area=3990
-   Diff Image: reports\diff\diff_proceed_to_checkout.png
+chromium_smoke_dashboard_overview__check_the_dashboard.png -> OK but visually different in detail (Score: 0.950)
+   Difference Summary: Detected 15 highlighted difference region(s). Region 1: x=455, y=559, w=132, h=88, area=11616 Region 2: x=294, y=559, w=131, h=88, area=11528 Region 3: x=455, y=428, w=126, h=87, area=10962 Region 4: x=294, y=428, w=125, h=87, area=10875 Region 5: x=463, y=522, w=124, h=34, area=4216
+   AI Insight: The highlighted visual differences show a layout shift in the lower right corner, specifically with the 'Shopping Cart' section, and possibly a small text change or style change. 
+
+The change appears to be minor. 
+
+The diff image shows red rectangles indicating detected changes, primarily around the 'Shopping Cart' section and potentially some text or styling adjustments.
+   Diff Image: reports\diff\diff_chromium_smoke_dashboard_overview__check_the_dashboard.png
+
