@@ -10,7 +10,6 @@ module.exports = defineConfig({
   reporter: [
     ["list"],
     ["html", { open: "never", outputFolder: "playwright-report" }],
-    ["allure-playwright", { detail: true, outputFolder: "allure-results", suiteTitle: false }],
   ],
   retries: process.env.CI ? 1 : 0,
   testDir: "./tests",

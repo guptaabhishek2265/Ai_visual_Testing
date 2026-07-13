@@ -344,6 +344,17 @@ async function getNextAction({
   html,
   interactiveElements,
 }) {
+  if (process.env.USE_LOCAL_HEURISTICS_ONLY === "true") {
+    return buildHeuristicAction({
+      testerStep,
+      previousActions,
+      pageUrl,
+      pageTitle,
+      html,
+      interactiveElements,
+    });
+  }
+
   const textPrompt = buildNextActionPrompt({
     testerStep,
     previousActions,
