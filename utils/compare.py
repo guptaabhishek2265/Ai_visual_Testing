@@ -27,6 +27,8 @@ GROQ_MODEL = "llama-3.3-70b-versatile"
 GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 MIN_DIFF_BOX_AREA = 50
 FAIL_ON_VISUAL_DIFF = False
+SOURCE_COMMIT_MSG = ""
+SOURCE_COMMIT_SHA = ""
 
 
 def humanize_key(value):
@@ -58,7 +60,11 @@ def parse_visual_file_context(file_name):
 
 
 def build_visual_issue_title(result, context):
-    return f"Visual regression - {context['step']}"
+    step = context["step"]
+    if SOURCE_COMMIT_MSG:
+        short_sha = f" ({SOURCE_COMMIT_SHA})" if SOURCE_COMMIT_SHA else ""
+        return f"Visual regression - {step} | Commit: {SOURCE_COMMIT_MSG}{short_sha}"
+    return f"Visual regression - {step}"
 
 
 def build_visual_issue_summary(result, context):
@@ -71,6 +77,15 @@ def build_visual_issue_summary(result, context):
     lines = [
         title,
         "",
+    ]
+
+    if SOURCE_COMMIT_MSG:
+        lines.append(f"Source app commit: {SOURCE_COMMIT_MSG}")
+        if SOURCE_COMMIT_SHA:
+            lines.append(f"Commit SHA: {SOURCE_COMMIT_SHA}")
+        lines.append("")
+
+    lines.extend([
         f"Suite: {context['suite']} suite",
         f"Scenario: {context['scenario']}",
         f"Step: {context['step']}",
@@ -78,7 +93,7 @@ def build_visual_issue_summary(result, context):
         f"SSIM score: {score}",
         "",
         "Detected issue:",
-    ]
+    ])
 
     lines.append("Visual difference detected between baseline and current screenshot.")
 
@@ -186,7 +201,15 @@ def write_allure_visual_result(result):
             {"name": "Suite", "value": f"{context['suite']} suite"},
             {"name": "Scenario", "value": context["scenario"]},
             {"name": "Step", "value": context["step"]},
-        ],
+        ]
+        + (
+            [
+                {"name": "Source Commit", "value": SOURCE_COMMIT_MSG},
+                {"name": "Commit SHA", "value": SOURCE_COMMIT_SHA},
+            ]
+            if SOURCE_COMMIT_MSG
+            else []
+        ),
         "labels": [
             {"name": "language", "value": "python"},
             {"name": "framework", "value": "ssim"},
@@ -246,6 +269,8 @@ def load_config():
     global GROQ_VISION_MODEL
     global MIN_DIFF_BOX_AREA
     global FAIL_ON_VISUAL_DIFF
+    global SOURCE_COMMIT_MSG
+    global SOURCE_COMMIT_SHA
 
     load_env_file(ENV_PATH)
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
@@ -260,6 +285,11 @@ def load_config():
     ).strip()
     MIN_DIFF_BOX_AREA = int(os.getenv("MIN_DIFF_BOX_AREA", "50"))
     FAIL_ON_VISUAL_DIFF = os.getenv("FAIL_ON_VISUAL_DIFF", "false").strip().lower() == "true"
+    SOURCE_COMMIT_MSG = os.getenv("SOURCE_COMMIT_MSG", "").strip()
+    SOURCE_COMMIT_SHA = os.getenv("SOURCE_COMMIT_SHA", "").strip()
+
+    if SOURCE_COMMIT_MSG:
+        print(f"Source app commit: {SOURCE_COMMIT_MSG} ({SOURCE_COMMIT_SHA})")
 
 
 def list_pngs(folder_path):

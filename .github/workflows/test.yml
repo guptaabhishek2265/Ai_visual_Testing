@@ -49,6 +49,11 @@ jobs:
       TEST_LABEL: ${{ github.event.inputs.test_label || '' }}
       BROWSER_PROJECT: ${{ github.event.inputs.browser_project || 'chromium' }}
 
+      # Source app commit tracking
+      SOURCE_REPO: ${{ github.event.client_payload.source_repo || 'guptaabhishek2265/Jungle_safari' }}
+      SOURCE_COMMIT_MSG: ${{ github.event.client_payload.commit_message || '' }}
+      SOURCE_COMMIT_SHA: ${{ github.event.client_payload.commit_sha || '' }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -97,6 +102,24 @@ jobs:
             npx playwright test --project="$BROWSER_PROJECT" --grep "$TEST_LABEL"
           else
             npx playwright test --project="$BROWSER_PROJECT"
+          fi
+
+      - name: Fetch source app commit info
+        if: env.SOURCE_COMMIT_MSG == ''
+        shell: bash
+        run: |
+          if [ -n "$SOURCE_REPO" ]; then
+            echo "Fetching latest commit from $SOURCE_REPO..."
+            COMMIT_JSON=$(curl -s "https://api.github.com/repos/$SOURCE_REPO/commits?per_page=1")
+            MSG=$(echo "$COMMIT_JSON" | jq -r '.[0].commit.message // empty' | head -1)
+            SHA=$(echo "$COMMIT_JSON" | jq -r '.[0].sha // empty' | head -c 7)
+            if [ -n "$MSG" ]; then
+              echo "SOURCE_COMMIT_MSG=$MSG" >> $GITHUB_ENV
+              echo "SOURCE_COMMIT_SHA=$SHA" >> $GITHUB_ENV
+              echo "Source commit: $MSG ($SHA)"
+            else
+              echo "Could not fetch commit info from $SOURCE_REPO"
+            fi
           fi
 
       - name: Run visual comparison
