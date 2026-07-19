@@ -1,5 +1,27 @@
 name: Visual Test Pipeline
 
+# ─────────────────────────────────────────────────────────────────────────────
+# TRIGGERS
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# 1. repository_dispatch (run-visual-tests)
+#    Any external repository can trigger this pipeline by POSTing to:
+#      https://api.github.com/repos/guptaabhishek2265/Ai_visual_Testing/dispatches
+#    with the following client_payload:
+#      {
+#        "event_type": "run-visual-tests",
+#        "client_payload": {
+#          "app_url":   "https://their-website.com/login",
+#          "email":     "user@their-website.com",
+#          "password":  "their_secret",           ← stored in THEIR secrets, never visible here
+#          "steps_url": "https://raw.githubusercontent.com/.../steps.txt"  ← optional
+#        }
+#      }
+#
+# 2. workflow_dispatch — manual run from the GitHub Actions tab
+# 3. push / pull_request to main — runs with repository secrets
+# ─────────────────────────────────────────────────────────────────────────────
+
 on:
   repository_dispatch:
     types: [run-visual-tests]
@@ -10,11 +32,15 @@ on:
   workflow_dispatch:
     inputs:
       test_label:
-        description: "Optional Playwright label to run, for example @smoke, @sanity, @regression, @critical, @cart, @checkout, @menu"
+        description: "Optional Playwright label: @smoke | @sanity | @regression | @critical | @cart | @checkout | @menu"
         required: false
         default: ""
       app_url:
-        description: "Optional app URL to test. Falls back to the APP_URL secret."
+        description: "Target app URL (e.g. https://example.com/login). Falls back to APP_URL secret."
+        required: false
+        default: ""
+      email:
+        description: "Login email for the target app. Falls back to EMAIL secret."
         required: false
         default: ""
       browser_project:
@@ -35,28 +61,64 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
+    # ── Environment variable priority ────────────────────────────────────────
+    # client_payload (external repo trigger) > workflow_dispatch inputs > repo secrets
     env:
-      APP_URL: ${{ github.event.client_payload.APP_URL || github.event.client_payload.app_url || github.event.inputs.app_url || secrets.APP_URL }}
-      EMAIL: ${{ secrets.EMAIL }}
-      PASSWORD: ${{ secrets.PASSWORD }}
+      APP_URL:   ${{ github.event.client_payload.app_url   || github.event.inputs.app_url   || secrets.APP_URL }}
+      EMAIL:     ${{ github.event.client_payload.email     || github.event.inputs.email     || secrets.EMAIL }}
+
+      # PASSWORD comes from the external repo's own secrets via client_payload.
+      # It is NEVER stored in this repository. It is masked immediately in the first step.
+      PASSWORD:  ${{ github.event.client_payload.password  || secrets.PASSWORD }}
+
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
+      # Optional: external repo can supply a URL pointing to their own steps.txt
+      STEPS_URL: ${{ github.event.client_payload.steps_url || '' }}
+
       # Visual comparison settings
-      FAIL_ON_VISUAL_DIFF: "false"
-      SSIM_THRESHOLD: "0.60"
+      FAIL_ON_VISUAL_DIFF:       "false"
+      SSIM_THRESHOLD:            "0.60"
       DETAIL_ANALYSIS_THRESHOLD: "0.97"
 
-      TEST_LABEL: ${{ github.event.inputs.test_label || '' }}
+      TEST_LABEL:      ${{ github.event.inputs.test_label || '' }}
       BROWSER_PROJECT: ${{ github.event.inputs.browser_project || 'chromium' }}
 
       # Source app commit tracking
-      SOURCE_REPO: ${{ github.event.client_payload.source_repo || 'guptaabhishek2265/Jungle_safari' }}
+      SOURCE_REPO:       ${{ github.event.client_payload.source_repo || '' }}
       SOURCE_COMMIT_MSG: ${{ github.event.client_payload.commit_message || '' }}
       SOURCE_COMMIT_SHA: ${{ github.event.client_payload.commit_sha || '' }}
 
     steps:
+      # ── 0. SECURITY: Mask the dynamic password immediately ─────────────────
+      # This ensures the password never appears in any subsequent log line,
+      # regardless of where it came from (payload or secret).
+      - name: Mask dynamic credentials
+        shell: bash
+        run: |
+          if [ -n "$PASSWORD" ]; then
+            echo "::add-mask::$PASSWORD"
+          fi
+          if [ -n "$EMAIL" ]; then
+            echo "::add-mask::$EMAIL"
+          fi
+          echo "Credentials masked."
+
+      # ── 1. Checkout this testing repository ───────────────────────────────
       - uses: actions/checkout@v4
 
+      # ── 2. Optionally replace steps.txt with the external repo's version ──
+      - name: Download custom steps.txt (if provided)
+        if: env.STEPS_URL != ''
+        shell: bash
+        run: |
+          echo "Downloading custom steps.txt from: $STEPS_URL"
+          curl -fsSL "$STEPS_URL" -o steps.txt
+          echo "Custom steps.txt downloaded. Contents:"
+          cat steps.txt
+
+      # ── 3. Language runtimes ──────────────────────────────────────────────
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -74,16 +136,37 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # ── 4. Install dependencies ───────────────────────────────────────────
       - name: Install Node dependencies
         run: npm ci
 
-      - name: Validate required secrets
-        run: |
-          test -n "$APP_URL"
-          test -n "$EMAIL"
-          test -n "$PASSWORD"
-          test -n "$GROQ_API_KEY"
+      - name: Install Python dependencies
+        run: pip install opencv-python scikit-image numpy requests
 
+      # ── 5. Validate required inputs ───────────────────────────────────────
+      - name: Validate required inputs
+        shell: bash
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "ERROR: APP_URL is required. Provide it via client_payload, workflow_dispatch input, or the APP_URL secret."
+            exit 1
+          fi
+          if [ -z "$EMAIL" ]; then
+            echo "ERROR: EMAIL is required. Provide it via client_payload, workflow_dispatch input, or the EMAIL secret."
+            exit 1
+          fi
+          if [ -z "$PASSWORD" ]; then
+            echo "ERROR: PASSWORD is required. Provide it via client_payload or the PASSWORD secret."
+            exit 1
+          fi
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "ERROR: GROQ_API_KEY secret is required in this repository."
+            exit 1
+          fi
+          echo "Target URL: $APP_URL"
+          echo "All required inputs validated."
+
+      # ── 6. Install Playwright browsers ────────────────────────────────────
       - name: Install Playwright browsers
         shell: bash
         run: |
@@ -92,10 +175,8 @@ jobs:
             npx playwright install chrome
           fi
 
-      - name: Install Python dependencies
-        run: pip install opencv-python scikit-image numpy requests
-
-      - name: Run selected visual tests
+      # ── 7. Run visual tests ───────────────────────────────────────────────
+      - name: Run visual tests
         shell: bash
         run: |
           if [ -n "$TEST_LABEL" ]; then
@@ -104,31 +185,33 @@ jobs:
             npx playwright test --project="$BROWSER_PROJECT"
           fi
 
+      # ── 8. Fetch source app commit info for the Allure report ─────────────
       - name: Fetch source app commit info
-        if: env.SOURCE_COMMIT_MSG == ''
+        if: env.SOURCE_COMMIT_MSG == '' && env.SOURCE_REPO != ''
         shell: bash
         run: |
-          if [ -n "$SOURCE_REPO" ]; then
-            echo "Fetching latest commit from $SOURCE_REPO..."
-            COMMIT_JSON=$(curl -s "https://api.github.com/repos/$SOURCE_REPO/commits?per_page=1")
-            MSG=$(echo "$COMMIT_JSON" | jq -r '.[0].commit.message // empty' | head -1)
-            SHA=$(echo "$COMMIT_JSON" | jq -r '.[0].sha // empty' | head -c 7)
-            if [ -n "$MSG" ]; then
-              echo "SOURCE_COMMIT_MSG=$MSG" >> $GITHUB_ENV
-              echo "SOURCE_COMMIT_SHA=$SHA" >> $GITHUB_ENV
-              echo "Source commit: $MSG ($SHA)"
-            else
-              echo "Could not fetch commit info from $SOURCE_REPO"
-            fi
+          echo "Fetching latest commit from $SOURCE_REPO..."
+          COMMIT_JSON=$(curl -s "https://api.github.com/repos/$SOURCE_REPO/commits?per_page=1")
+          MSG=$(echo "$COMMIT_JSON" | jq -r '.[0].commit.message // empty' | head -1)
+          SHA=$(echo "$COMMIT_JSON" | jq -r '.[0].sha // empty' | head -c 7)
+          if [ -n "$MSG" ]; then
+            echo "SOURCE_COMMIT_MSG=$MSG" >> $GITHUB_ENV
+            echo "SOURCE_COMMIT_SHA=$SHA" >> $GITHUB_ENV
+            echo "Source commit: [$SHA] $MSG"
+          else
+            echo "Could not fetch commit info from $SOURCE_REPO (repo may be private or not found)"
           fi
 
+      # ── 9. Run visual comparison ──────────────────────────────────────────
       - name: Run visual comparison
         run: npm run compare
 
+      # ── 10. Generate Allure report ────────────────────────────────────────
       - name: Generate Allure report
         if: always()
         run: npm run allure:generate
 
+      # ── 11. Upload artifacts ──────────────────────────────────────────────
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4

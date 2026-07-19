@@ -1,26 +1,34 @@
-# Edit this file only. The test code reads suites and test cases from here.
+# ==============================================================================
+# DEFAULT TEST STEPS
+# ==============================================================================
+# This file contains the default test flow. 
+#
+# If you are triggering this pipeline remotely from another repository, you can
+# pass a `steps_url` in your payload to completely override this file with your
+# own custom test steps.
+#
 # Supported headers:
 # [suite: smoke]
 # [test: Your test name]
 # [labels: @critical @cart]
 #
 # Notes:
-# - Login lines are ignored because login is handled automatically.
+# - Login is handled automatically before these steps run.
 # - Every non-empty line under a [test: ...] block is treated as one step.
+# ==============================================================================
+    [suite: smoke]
+    [test: Dashboard overview]
+    [labels: @critical @dashboard]
+    Check the dashboard and take a screenshot.
 
-[suite: smoke]
-[test: Dashboard overview]
-[labels: @critical @dashboard]
-Check the dashboard and take a screenshot.
+    [suite: sanity]
+    [test: Menu availability]
+    [labels: @critical @navigation @menu]
+    Browse the food menu and take a screenshot.
 
-[suite: sanity]
-[test: Menu availability]
-[labels: @critical @navigation @menu]
-Browse the food menu and take a screenshot.
-
-[suite: regression]
-[test: Critical checkout path]
-[labels: @checkout @cart @e2e]
-Browse the food menu and take a screenshot.
-Add all the items to the cart and take a screenshot.
-Proceed to checkout and take a screenshot.
+    [suite: regression]
+    [test: Critical checkout path]
+    [labels: @checkout @cart @e2e]
+    Browse the food menu and take a screenshot.
+    Add all the items to the cart and take a screenshot.
+    Proceed to checkout and take a screenshot.

@@ -1,6 +1,6 @@
-# AI Visual Testing
+# AI Visual Testing Engine
 
-Playwright-based visual automation for an AI-guided food ordering flow, with suite-based execution, SSIM image comparison, Allure reporting, and PR validation in GitHub Actions.
+Playwright-based visual automation for an AI-guided testing flow, with suite-based execution, SSIM image comparison, Allure reporting, and full support for dynamic triggers from external repositories. This engine can test any website simply by providing a URL, credentials, and plain English test steps.
 
 ## What Is Included
 
@@ -13,16 +13,19 @@ Playwright-based visual automation for an AI-guided food ordering flow, with sui
 - Allure results and generated Allure HTML report
 - SSIM-based visual comparison with optional AI commentary for changed screenshots
 
+## Integration / Testing Any Website
+
+This repository acts as a central Testing-as-a-Service engine. You can trigger it from **any external repository** securely via GitHub Actions without sharing your codebase or hardcoding credentials here.
+
+See the [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for step-by-step instructions on how to connect your repository.
+
 ## Suite Design
 
-The current app scenarios are based on the existing food ordering journey:
+Test scenarios are defined in plain English. The default suites provided in this repo (which can be overridden remotely) are:
 
-- `smoke`
-  Covers login, dashboard visibility, and reaching the menu quickly.
-- `sanity`
-  Covers dashboard-to-menu navigation and adding items through the cart review flow.
-- `regression`
-  Covers the broader visual journey through dashboard, menu, cart, and checkout.
+- `smoke`: Covers login and basic visibility checks.
+- `sanity`: Covers core navigation.
+- `regression`: Covers deeper end-to-end user journeys.
 
 Scenario definitions are now driven from [steps.txt](/c:/Users/richa/OneDrive/Desktop/samsung_prism/Sami/ai-visual-testing/steps.txt). The parser in [tests/scenarios.js](/c:/Users/richa/OneDrive/Desktop/samsung_prism/Sami/ai-visual-testing/tests/scenarios.js) only reads that file.
 
@@ -46,13 +49,13 @@ npx playwright install
 pip install opencv-python scikit-image numpy requests
 ```
 
-4. Configure `.env` with:
+4. Configure `.env` with your default testing target:
 
 ```bash
-APP_URL=...
-EMAIL=...
-PASSWORD=...
-GROQ_API_KEY=...
+APP_URL=https://your-website.com/login
+EMAIL=testuser@example.com
+PASSWORD=your_secret
+GROQ_API_KEY=gsk_...
 ```
 
 ## Local Commands
@@ -159,12 +162,14 @@ It also supports manual runs from the GitHub Actions tab with:
 The workflow:
 
 1. Installs Node, Python, Java, and Playwright dependencies
-2. Runs all visual tests by default, or a selected label when manually triggered
-3. Runs the SSIM visual comparison step
-4. Generates an Allure HTML report
-5. Uploads Playwright, Allure, and visual diff artifacts
+2. Masks any passwords passed dynamically
+3. Optionally downloads a custom `steps.txt` if triggered externally
+4. Runs visual tests on the provided URL
+5. Runs SSIM visual comparison
+6. Generates an Allure HTML report
+7. Uploads Playwright, Allure, and visual diff artifacts
 
-Required GitHub repository secrets:
+Required GitHub repository secrets for standalone runs:
 
 - `APP_URL`
 - `EMAIL`

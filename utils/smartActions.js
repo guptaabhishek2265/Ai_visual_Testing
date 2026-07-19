@@ -9,28 +9,41 @@ const SCREENSHOT_SCROLL_STEP_PX = Number(process.env.SCREENSHOT_SCROLL_STEP_PX |
 const SCREENSHOT_SCROLL_WAIT_MS = Number(process.env.SCREENSHOT_SCROLL_WAIT_MS || 75);
 const LOGIN_SUCCESS_TIMEOUT_MS = Number(process.env.LOGIN_SUCCESS_TIMEOUT_MS || 15000);
 const FAST_VISUAL_MODE = process.env.FAST_VISUAL_MODE !== "false";
+// Generic login selectors that cover the vast majority of web applications.
+// These are tried in order — first working selector wins.
 const DEFAULT_LOGIN_SELECTORS = {
   email: [
-    "#email",
-    'input[name="email"]',
     'input[type="email"]',
-    'input[placeholder*="Email" i]',
+    'input[name="email"]',
+    'input[id*="email" i]',
+    'input[placeholder*="email" i]',
     'input[name="username"]',
-    'input[placeholder*="User" i]',
+    'input[id*="username" i]',
+    'input[placeholder*="username" i]',
+    'input[name="user"]',
+    'input[autocomplete="email"]',
+    'input[autocomplete="username"]',
   ],
   password: [
-    "#password",
-    'input[name="password"]',
     'input[type="password"]',
-    'input[placeholder*="Password" i]',
+    'input[name="password"]',
+    'input[id*="password" i]',
+    'input[placeholder*="password" i]',
+    'input[autocomplete="current-password"]',
   ],
   submit: [
-    ".MuiButton-containedPrimary",
     'button[type="submit"]',
     'input[type="submit"]',
     'button:has-text("Login")',
+    'button:has-text("Log in")',
     'button:has-text("Sign in")',
+    'button:has-text("Sign In")',
+    'button:has-text("Continue")',
+    'button:has-text("Submit")',
     '[role="button"]:has-text("Login")',
+    '[role="button"]:has-text("Sign in")',
+    'a:has-text("Login")',
+    'a:has-text("Sign in")',
   ],
 };
 
@@ -318,16 +331,40 @@ async function clickAllAction(page, selector) {
 
 async function loginSmart(page) {
   const loginUrl = page.url();
-  await page.waitForSelector("input", { timeout: 15000 });
+
+  // Wait for any input element — works for any website regardless of framework
+  try {
+    await page.waitForSelector("input", { timeout: 15000 });
+  } catch {
+    // No input found — the page might not have a login form (e.g. already logged in)
+    console.log("No input element found on the page. Skipping login.");
+    return;
+  }
+
+  // Check if this page actually has a password field before attempting login
+  const hasPasswordField = await page
+    .locator('input[type="password"]')
+    .count()
+    .then(count => count > 0)
+    .catch(() => false);
+
+  if (!hasPasswordField) {
+    console.log("No password field detected. Skipping login (page may be public or already authenticated).");
+    return;
+  }
+
   const html = await page.content();
   let selectors = {};
 
+  // Ask the LLM to find the right selectors for this specific page's HTML
   try {
     selectors = await getLoginSelectors(html);
+    console.log("LLM resolved login selectors successfully.");
   } catch (error) {
-    console.log("Login selector resolution failed in loginSmart, using defaults:", error.message);
+    console.log("LLM selector resolution failed, using default fallback selectors:", error.message);
   }
 
+  // Combine LLM-found selectors with defaults (LLM result is tried first)
   const emailSelector = await findFirstWorkingSelector(page, [
     selectors.email,
     ...DEFAULT_LOGIN_SELECTORS.email,
@@ -341,28 +378,34 @@ async function loginSmart(page) {
     ...DEFAULT_LOGIN_SELECTORS.submit,
   ]);
 
-  if (!emailSelector || !passwordSelector || !submitSelector) {
-    throw new Error(
-      `Unable to resolve login selectors. email=${emailSelector} password=${passwordSelector} submit=${submitSelector}`
-    );
+  console.log("Resolved login selectors:", { email: emailSelector, password: passwordSelector, submit: submitSelector });
+
+  if (!emailSelector) {
+    throw new Error(`Could not find the email/username input on: ${loginUrl}`);
+  }
+  if (!passwordSelector) {
+    throw new Error(`Could not find the password input on: ${loginUrl}`);
+  }
+  if (!submitSelector) {
+    throw new Error(`Could not find the login submit button on: ${loginUrl}`);
   }
 
-  console.log("Resolved login selectors:", {
-    email: emailSelector,
-    password: passwordSelector,
-    submit: submitSelector,
-  });
-
+  // Fill in credentials from environment variables
   await page.locator(emailSelector).first().fill(process.env.EMAIL);
   await page.locator(passwordSelector).first().fill(process.env.PASSWORD);
   await page.locator(submitSelector).first().click();
 
+  // Wait for login to complete — universally detected by:
+  // 1. URL has changed from the login page, OR
+  // 2. The password input has disappeared from the DOM
   try {
     await page.waitForFunction(
       ({ initialUrl }) => {
-        const passwordInput = document.querySelector('input[type="password"], input[name="password"], #password');
+        const passwordInput = document.querySelector('input[type="password"]');
         const currentUrl = window.location.href;
-        return currentUrl !== initialUrl && !passwordInput;
+        const urlChanged = currentUrl !== initialUrl;
+        const passwordGone = !passwordInput || !passwordInput.offsetParent;
+        return urlChanged || passwordGone;
       },
       { initialUrl: loginUrl },
       { timeout: LOGIN_SUCCESS_TIMEOUT_MS }
@@ -370,28 +413,30 @@ async function loginSmart(page) {
   } catch (error) {
     throw new Error(
       `Login did not complete within ${LOGIN_SUCCESS_TIMEOUT_MS}ms. ` +
-      `Current URL: ${page.url()}. Check APP_URL, EMAIL, PASSWORD, and app availability.`
+      `Current URL: ${page.url()}. ` +
+      `Check that APP_URL points to a login page and EMAIL/PASSWORD are correct.`
     );
   }
 
+  // Allow the post-login page to fully render
   await page.waitForLoadState("domcontentloaded").catch(() => {});
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(1500);
 
-  const stillOnLogin = /\/login\b/i.test(page.url());
+  // Final confirmation: password field should no longer be visible
   const passwordStillVisible = await page
-    .locator('input[type="password"], input[name="password"], #password')
+    .locator('input[type="password"]')
     .first()
     .isVisible()
     .catch(() => false);
 
-  if (stillOnLogin || passwordStillVisible) {
+  if (passwordStillVisible) {
     throw new Error(
-      `Login appears to have failed. Current URL: ${page.url()}. ` +
-      "The login URL or password field is still visible after submit."
+      `Login appears to have failed — the password field is still visible. ` +
+      `Current URL: ${page.url()}. Check your EMAIL and PASSWORD are correct for this website.`
     );
   }
 
-  console.log("Login complete");
+  console.log(`Login complete. Now at: ${page.url()}`);
 }
 
 async function runStep(page, testerStep, options = {}) {
