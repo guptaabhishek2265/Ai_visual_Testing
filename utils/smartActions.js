@@ -390,10 +390,23 @@ async function loginSmart(page) {
     throw new Error(`Could not find the login submit button on: ${loginUrl}`);
   }
 
-  // Fill in credentials from environment variables
-  await page.locator(emailSelector).first().fill(process.env.EMAIL);
-  await page.locator(passwordSelector).first().fill(process.env.PASSWORD);
+  // Fill in credentials from environment variables.
+  // We use click + selectAll + type instead of .fill() so that React-based
+  // frameworks (e.g. Material-UI TextField) properly trigger their onChange
+  // handlers and update component state before the form is submitted.
+  const emailInput = page.locator(emailSelector).first();
+  await emailInput.click({ clickCount: 3 });
+  await emailInput.pressSequentially(process.env.EMAIL, { delay: 30 });
+
+  const passwordInput = page.locator(passwordSelector).first();
+  await passwordInput.click({ clickCount: 3 });
+  await passwordInput.pressSequentially(process.env.PASSWORD, { delay: 30 });
+
+  // Short pause to let any React state updates settle before submitting
+  await page.waitForTimeout(500);
   await page.locator(submitSelector).first().click();
+  // Allow the network request to start before we begin polling
+  await page.waitForTimeout(1000);
 
   // Wait for login to complete — universally detected by:
   // 1. URL has changed from the login page, OR
