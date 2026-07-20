@@ -3,9 +3,9 @@ const Groq = require("groq-sdk");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const RATE_LIMIT_MAX_RETRIES = Number(process.env.RATE_LIMIT_MAX_RETRIES || 1);
-const RATE_LIMIT_DEFAULT_WAIT_MS = Number(process.env.RATE_LIMIT_DEFAULT_WAIT_MS || 60000);
-const RATE_LIMIT_MAX_WAIT_MS = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || 300000);
+const RATE_LIMIT_MAX_RETRIES = Number(process.env.RATE_LIMIT_MAX_RETRIES || 0);
+const RATE_LIMIT_DEFAULT_WAIT_MS = Number(process.env.RATE_LIMIT_DEFAULT_WAIT_MS || 5000);
+const RATE_LIMIT_MAX_WAIT_MS = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || 10000);
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -360,7 +360,7 @@ async function getNextAction({
     interactiveElements,
   });
 
-  const visionModel = process.env.GROQ_VISION_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct";
+  const visionModel = process.env.GROQ_VISION_MODEL || "llama-3.2-11b-vision-preview";
   const textModel = process.env.GROQ_TEXT_MODEL || "llama-3.3-70b-versatile";
 
   let lastVisionError = null;
