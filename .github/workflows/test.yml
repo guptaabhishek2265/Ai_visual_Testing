@@ -53,7 +53,7 @@ on:
           - chrome
 
 concurrency:
-  group: visual-tests-${{ github.workflow }}-${{ github.ref }}
+  group: visual-tests-${{ github.event.client_payload.email || github.event.inputs.email || github.ref }}
   cancel-in-progress: true
 
 jobs:
