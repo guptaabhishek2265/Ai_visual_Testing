@@ -61,6 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
 
     # ── Environment variable priority ────────────────────────────────────────
     # client_payload (external repo trigger) > workflow_dispatch inputs > repo secrets
@@ -175,6 +176,17 @@ jobs:
             npx playwright install chrome
           fi
 
+      # ── 6b. Restore baseline screenshots from previous run ─────────────────
+      # This is how baselines persist between CI runs without committing images.
+      # On the very first run, this step is skipped (no artifact exists yet).
+      - name: Restore baseline screenshots
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: baseline-screenshots
+          path: screenshots/baseline
+          if_no_artifact_found: ignore
+          workflow_conclusion: success
+
       # ── 7. Run visual tests ───────────────────────────────────────────────
       - name: Run visual tests
         shell: bash
@@ -246,3 +258,15 @@ jobs:
             screenshots/current
             test-results
           if-no-files-found: ignore
+
+      # ── 12. Persist baselines for the next run ────────────────────────────
+      # Saves baseline screenshots as an artifact so the next run can restore
+      # them and do a real before/after visual comparison.
+      - name: Upload baseline screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-screenshots
+          path: screenshots/baseline
+          if-no-files-found: ignore
+          overwrite: true
