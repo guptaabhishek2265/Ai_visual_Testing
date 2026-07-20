@@ -79,10 +79,6 @@ function buildFallbackLoginSelectors(html) {
     ]),
     submit: pickSelector([
       {
-        selector: ".MuiButton-containedPrimary",
-        match: text => text.includes("muibutton-containedprimary"),
-      },
-      {
         selector: 'button[type="submit"]',
         match: text => text.includes('button') && (text.includes('type="submit"') || text.includes("type='submit'")),
       },
