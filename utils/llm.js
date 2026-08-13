@@ -325,7 +325,7 @@ Format:
 HTML:
 ${html.slice(0, 8000)}
 `;
-    const responseText = await callGemini('gemini-1.5-flash', prompt);
+    const responseText = await callGemini('gemini-3.1-flash-live-preview', prompt);
     return parseJsonResponse(responseText.trim());
   } catch (error) {
     console.log("Login selector request failed, using local fallback:", error.message);
@@ -364,8 +364,8 @@ async function getNextAction({
     interactiveElements,
   });
 
-  const visionModel = process.env.GEMINI_VISION_MODEL || "gemini-1.5-pro";
-  const textModel = process.env.GEMINI_TEXT_MODEL || "gemini-1.5-flash";
+  const visionModel = process.env.GEMINI_VISION_MODEL || "gemini-3.1-flash-live-preview";
+  const textModel = process.env.GEMINI_TEXT_MODEL || "gemini-3.1-flash-live-preview";
 
   let lastVisionError = null;
   let lastTextError = null;
