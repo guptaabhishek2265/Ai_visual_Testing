@@ -73,7 +73,7 @@ jobs:
       # It is NEVER stored in this repository. It is masked immediately in the first step.
       PASSWORD:  ${{ github.event.client_payload.password  || secrets.PASSWORD }}
 
-      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       # Optional: external repo can supply a URL pointing to their own steps.txt
       STEPS_URL: ${{ github.event.client_payload.steps_url || '' }}

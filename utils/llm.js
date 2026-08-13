@@ -1,7 +1,22 @@
 require("dotenv").config();
-const Groq = require("groq-sdk");
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+async function callGemini(model, prompt, base64Image = null) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY is not set in environment.');
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const parts = [{ text: prompt }];
+  if (base64Image) {
+    parts.push({ inline_data: { mime_type: 'image/png', data: base64Image } });
+  }
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts }], generationConfig: { temperature: 0 } })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'Gemini API Error');
+  if (!data.candidates || data.candidates.length === 0) throw new Error('No candidates returned from Gemini');
+  return data.candidates[0].content.parts[0].text;
+}
 
 const RATE_LIMIT_MAX_RETRIES = Number(process.env.RATE_LIMIT_MAX_RETRIES || 0);
 const RATE_LIMIT_DEFAULT_WAIT_MS = Number(process.env.RATE_LIMIT_DEFAULT_WAIT_MS || 5000);
@@ -12,7 +27,7 @@ function sleep(ms) {
 }
 
 /**
- * Extract the suggested retry delay (in ms) from a Groq rate-limit error.
+ * Extract the suggested retry delay (in ms) from a Gemini rate-limit error.
  * Looks for patterns like "Please try again in 14m7.4112s" or "1h9m1.152s".
  */
 function extractRetryDelayMs(error) {
@@ -43,11 +58,7 @@ function parseJsonResponse(content) {
 }
 
 function isRateLimitError(error) {
-  return (
-    error &&
-    typeof error.message === "string" &&
-    (error.message.includes("rate_limit_exceeded") || error.message.includes("Rate limit reached"))
-  );
+  return error && typeof error.message === 'string' && (error.message.includes('Quota exceeded') || error.message.includes('rate limit') || error.message.includes('429'));
 }
 
 function buildFallbackLoginSelectors(html) {
@@ -299,12 +310,7 @@ ${(html || "").slice(0, 8000)}
 // Reads page HTML and returns CSS selectors for login form
 async function getLoginSelectors(html) {
   try {
-    const res = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 200,
-      messages: [{
-        role: "user",
-        content: `
+    const prompt = `
 Return ONLY valid JSON. No explanation, no markdown, no backticks.
 
 Find the CSS selectors for the login form fields.
@@ -318,18 +324,16 @@ Format:
 
 HTML:
 ${html.slice(0, 8000)}
-`,
-      }],
-    });
-
-    return parseJsonResponse(res.choices[0].message.content.trim());
+`;
+    const responseText = await callGemini('gemini-1.5-flash', prompt);
+    return parseJsonResponse(responseText.trim());
   } catch (error) {
     console.log("Login selector request failed, using local fallback:", error.message);
     return buildFallbackLoginSelectors(html);
   }
 }
 
-// Tries a multimodal request first. If Groq rejects image parts for the
+// Tries a multimodal request first. If Gemini rejects image parts for the
 // selected model/account, fall back to a text-only DOM snapshot prompt.
 async function getNextAction({
   screenshotBase64,
@@ -360,8 +364,8 @@ async function getNextAction({
     interactiveElements,
   });
 
-  const visionModel = process.env.GROQ_VISION_MODEL || "llama-3.2-11b-vision-preview";
-  const textModel = process.env.GROQ_TEXT_MODEL || "llama-3.3-70b-versatile";
+  const visionModel = process.env.GEMINI_VISION_MODEL || "gemini-1.5-pro";
+  const textModel = process.env.GEMINI_TEXT_MODEL || "gemini-1.5-flash";
 
   let lastVisionError = null;
   let lastTextError = null;
@@ -369,28 +373,9 @@ async function getNextAction({
   for (let attempt = 0; attempt <= RATE_LIMIT_MAX_RETRIES; attempt++) {
     // --- Attempt the vision model first ---
     try {
-      const res = await groq.chat.completions.create({
-        model: visionModel,
-        max_tokens: 300,
-        messages: [{
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `${textPrompt}\nUse the attached screenshot as the primary source of truth for the visible UI.`,
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/png;base64,${screenshotBase64}`,
-                detail: "auto",
-              },
-            },
-          ],
-        }],
-      });
-
-      return parseJsonResponse(res.choices[0].message.content.trim());
+      const prompt = `${textPrompt}\nUse the attached screenshot as the primary source of truth for the visible UI.`;
+      const responseText = await callGemini(visionModel, prompt, screenshotBase64);
+      return parseJsonResponse(responseText.trim());
     } catch (error) {
       lastVisionError = error;
       console.log("Vision request failed, falling back to HTML context:", error.message);
@@ -398,16 +383,9 @@ async function getNextAction({
 
     // --- Attempt the text model ---
     try {
-      const res = await groq.chat.completions.create({
-        model: textModel,
-        max_tokens: 300,
-        messages: [{
-          role: "user",
-          content: `${textPrompt}\nThe screenshot could not be attached, so use the DOM snapshot, URL, and page title instead.`,
-        }],
-      });
-
-      return parseJsonResponse(res.choices[0].message.content.trim());
+      const prompt = `${textPrompt}\nThe screenshot could not be attached, so use the DOM snapshot, URL, and page title instead.`;
+      const responseText = await callGemini(textModel, prompt);
+      return parseJsonResponse(responseText.trim());
     } catch (fallbackError) {
       lastTextError = fallbackError;
       console.log("Text request failed:", fallbackError.message);
@@ -443,7 +421,7 @@ async function getNextAction({
   const bothRateLimited = isRateLimitError(lastTextError) || isRateLimitError(lastVisionError);
   if (bothRateLimited && isGenericFallbackAction(heuristicAction)) {
     throw new Error(
-      "Groq rate limit reached and local fallback could not confidently satisfy this step. " +
+      "Gemini rate limit reached and local fallback could not confidently satisfy this step. " +
       "Retry after the rate-limit window, reduce test scope, or improve deterministic selectors for this flow."
     );
   }
