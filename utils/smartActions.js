@@ -7,7 +7,7 @@ const CURRENT_DIR = "screenshots/current";
 const SCREENSHOT_ZOOM = Number(process.env.SCREENSHOT_ZOOM || 0.8);
 const SCREENSHOT_SCROLL_STEP_PX = Number(process.env.SCREENSHOT_SCROLL_STEP_PX || 900);
 const SCREENSHOT_SCROLL_WAIT_MS = Number(process.env.SCREENSHOT_SCROLL_WAIT_MS || 75);
-const LOGIN_SUCCESS_TIMEOUT_MS = Number(process.env.LOGIN_SUCCESS_TIMEOUT_MS || 15000);
+const LOGIN_SUCCESS_TIMEOUT_MS = Number(process.env.LOGIN_SUCCESS_TIMEOUT_MS || 30000);
 const FAST_VISUAL_MODE = process.env.FAST_VISUAL_MODE !== "false";
 // Generic login selectors that cover the vast majority of web applications.
 // These are tried in order — first working selector wins.
