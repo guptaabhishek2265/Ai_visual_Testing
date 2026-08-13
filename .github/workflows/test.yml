@@ -160,8 +160,8 @@ jobs:
             echo "ERROR: PASSWORD is required. Provide it via client_payload or the PASSWORD secret."
             exit 1
           fi
-          if [ -z "$GROQ_API_KEY" ]; then
-            echo "ERROR: GROQ_API_KEY secret is required in this repository."
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "ERROR: GEMINI_API_KEY secret is required in this repository."
             exit 1
           fi
           echo "Target URL: $APP_URL"
